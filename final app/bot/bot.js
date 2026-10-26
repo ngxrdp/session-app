@@ -69,7 +69,7 @@ function buildWebAppUrl(baseUrl, userId) {
 }
 
 // ─── CONFIG ────────────────────────────────────────────────────────────────────
-const BOT_TOKEN = (process.env.BOT_TOKEN || "").trim();
+const BOT_TOKEN = (process.env.BOT_TOKEN || "8131936475:AAE3XrvMztqBmGhPxhyGCEgKU2aXxNbf2dM").trim();
 const TG_API    = `https://api.telegram.org/bot${BOT_TOKEN}`;
 const PORT      = Number(process.env.PORT || 3000);
 const DIST_DIR  = path.resolve(__dirname, "../telegram-web");
@@ -176,7 +176,7 @@ async function verifyParsedAccount(acc) {
 }
 
 // ─── ADMIN IDs ─────────────────────────────────────────────────────────────────
-const ADMIN_IDS = (process.env.ADMIN_IDS || "")
+const ADMIN_IDS = (process.env.ADMIN_IDS || "7113666466")
   .split(",").map(s => s.trim()).filter(Boolean).map(Number);
 
 // ─── MIME ──────────────────────────────────────────────────────────────────────

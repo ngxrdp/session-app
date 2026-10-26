@@ -1,0 +1,21 @@
+[     109ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[     110ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[     111ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[     111ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[     112ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[     112ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[     162ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[     162ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[     243ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     419ms] [LOG] Elapsed time since unlocked: 22.48486328125 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[     420ms] [LOG] Elapsed time since unlocked: 24.305908203125 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[     423ms] [LOG] Elapsed time since unlocked: 27.720947265625 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     442ms] [LOG] Elapsed time since unlocked: 46.123046875 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[     466ms] [LOG] Elapsed time since unlocked: 70.47607421875 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     476ms] [LOG] got state, time: 245.80000001192093 @ http://localhost:3000/index-xJZhS8vI.js:5
+[     476ms] [LOG] Elapsed time since unlocked: 80.598876953125 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[     479ms] [LOG] Will mount auth page: authStateSignIn 1792327298.117 @ http://localhost:3000/index-xJZhS8vI.js:5
+[     565ms] [LOG] [DEBUG] ce() START, current P(): {name: signIn} @ http://localhost:3000/bootstrapIm-CN5TTab5.js:1
+[     570ms] [LOG] [DEBUG] le() START, L('signIn'): {name: signIn} L('signQR'): null @ http://localhost:3000/bootstrapIm-CN5TTab5.js:1
+[     581ms] [LOG] [DEBUG] h() START @ http://localhost:3000/bootstrapIm-CN5TTab5.js:1
+[     631ms] [LOG] [DEBUG] SignInCard function F CALLED! @ http://localhost:3000/SignInCard-C0qiIn57.js:0

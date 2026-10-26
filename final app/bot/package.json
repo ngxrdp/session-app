@@ -1,0 +1,19 @@
+{
+  "name": "final-app-bot",
+  "version": "1.0.0",
+  "description": "Telegram Web Mini App Bot Runner",
+  "type": "module",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "check": "node --check bot.js && node --check session_validator.js && node --check ../telegram-web/session-importer.js",
+    "test": "node test_all_sessions.js && node test_server_security.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "adm-zip": "^0.6.1",
+    "sql.js": "^1.15.0"
+  }
+}

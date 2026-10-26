@@ -1,0 +1,97 @@
+[     104ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[     105ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[     105ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[     105ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[     105ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[     105ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[     119ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[     119ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[     178ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     309ms] [LOG] Elapsed time since unlocked: 14.89208984375 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[     310ms] [LOG] Elapsed time since unlocked: 16.722900390625 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[     313ms] [LOG] Elapsed time since unlocked: 20.18505859375 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     351ms] [LOG] Elapsed time since unlocked: 58.10205078125 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[     355ms] [LOG] Elapsed time since unlocked: 61.944091796875 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     361ms] [LOG] got state, time: 196.4000000357628 @ http://localhost:3000/index-xJZhS8vI.js:5
+[     362ms] [LOG] Elapsed time since unlocked: 68.369873046875 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[     364ms] [LOG] Will mount auth page: authStateSignIn 1792327976.396 @ http://localhost:3000/index-xJZhS8vI.js:5
+[     538ms] [LOG] [DEBUG] SignInCard function F CALLED! @ http://localhost:3000/SignInCard-C0qiIn57.js:0
+[   74596ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/:0
+[  196098ms] [LOG] [DEBUG] SignInCard function F CALLED! @ http://localhost:3000/SignInCard-C0qiIn57.js:0
+[  275792ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/:0
+[  306907ms] [LOG] [Telegram.WebView] > postEvent web_app_data_send {data: {"action":"save_session","dcId":5,"key":"018318336…5368627,"firstName":"Telegram User","phone":null}} @ http://localhost:3000/telegram-web-app.js:134
+[  307469ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[  307470ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[  307470ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[  307470ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[  307470ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[  307470ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[  307502ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[  307502ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[  307549ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  307620ms] [LOG] Elapsed time since unlocked: 7.259033203125 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[  307621ms] [LOG] Elapsed time since unlocked: 8.007080078125 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[  307623ms] [LOG] Elapsed time since unlocked: 10.316162109375 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  307649ms] [LOG] Elapsed time since unlocked: 35.76611328125 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[  307653ms] [LOG] Elapsed time since unlocked: 39.572021484375 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  307656ms] [LOG] got state, time: 116.5 @ http://localhost:3000/index-xJZhS8vI.js:5
+[  307656ms] [LOG] Elapsed time since unlocked: 42.732177734375 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[  307657ms] [LOG] Will mount IM page: 1792328283.689 @ http://localhost:3000/index-xJZhS8vI.js:5
+[  308590ms] Object
+[  308590ms] Object
+[  308591ms] Object
+[  308593ms] Object
+[  308593ms] Object
+[  308593ms] Object
+[  308593ms] Object
+[  308594ms] [ERROR] solid error Error: Unknown error
+    at G (http://localhost:3000/solid-NBrjMhfa.js:1:9604)
+    at http://localhost:3000/solid-NBrjMhfa.js:1:2852 @ http://localhost:3000/solid-NBrjMhfa.js:0
+[  308594ms] [ERROR] solid error Error: Unknown error
+    at G (http://localhost:3000/solid-NBrjMhfa.js:1:9604)
+    at http://localhost:3000/solid-NBrjMhfa.js:1:2852 @ http://localhost:3000/solid-NBrjMhfa.js:0
+[  308595ms] [ERROR] solid error Error: Unknown error
+    at G (http://localhost:3000/solid-NBrjMhfa.js:1:9604)
+    at http://localhost:3000/solid-NBrjMhfa.js:1:2852 @ http://localhost:3000/solid-NBrjMhfa.js:0
+[  308594ms] Object
+[  308594ms] Object
+[  308595ms] Object
+[  309313ms] Object
+[  317830ms] Object
+[  317926ms] Object
+[  317926ms] Object
+[  324201ms] Object
+[  324936ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[  324937ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[  324937ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[  324937ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[  324937ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[  324937ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[  324947ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[  324947ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[  324973ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  325052ms] [LOG] Elapsed time since unlocked: 6.77294921875 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[  325052ms] [LOG] Elapsed time since unlocked: 7.239013671875 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[  325054ms] [LOG] Elapsed time since unlocked: 8.748046875 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  325078ms] [LOG] Elapsed time since unlocked: 33.303955078125 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[  325081ms] [LOG] Elapsed time since unlocked: 36.049072265625 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  325082ms] [LOG] got state, time: 114.30000001192093 @ http://localhost:3000/index-xJZhS8vI.js:5
+[  325082ms] [LOG] Elapsed time since unlocked: 37.23486328125 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[  325083ms] [LOG] Will mount IM page: 1792328301.115 @ http://localhost:3000/index-xJZhS8vI.js:5
+[  329235ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[  329235ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[  329235ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[  329235ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[  329235ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[  329235ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[  329244ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[  329245ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[  329270ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  329347ms] [LOG] Elapsed time since unlocked: 5.39697265625 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[  329348ms] [LOG] Elapsed time since unlocked: 5.716064453125 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[  329349ms] [LOG] Elapsed time since unlocked: 7.613037109375 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  329374ms] [LOG] Elapsed time since unlocked: 31.868896484375 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[  329376ms] [LOG] Elapsed time since unlocked: 33.847900390625 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  329377ms] [LOG] got state, time: 112.89999997615814 @ http://localhost:3000/index-xJZhS8vI.js:5
+[  329377ms] [LOG] Elapsed time since unlocked: 35.429931640625 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[  329378ms] [LOG] Will mount IM page: 1792328305.41 @ http://localhost:3000/index-xJZhS8vI.js:5

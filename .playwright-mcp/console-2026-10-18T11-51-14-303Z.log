@@ -1,0 +1,51 @@
+[      97ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[      98ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[      98ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[      98ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[      98ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[      98ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[     164ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[     164ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[     259ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     365ms] [LOG] Elapsed time since unlocked: 13.68994140625 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[     366ms] [LOG] Elapsed time since unlocked: 14.995849609375 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[     368ms] [LOG] Elapsed time since unlocked: 17.02392578125 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     382ms] [LOG] Elapsed time since unlocked: 30.619873046875 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[     401ms] [LOG] Elapsed time since unlocked: 49.97802734375 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     405ms] [LOG] got state, time: 155 @ http://localhost:3000/index-xJZhS8vI.js:5
+[     405ms] [LOG] Elapsed time since unlocked: 53.489013671875 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[     406ms] [LOG] Will mount auth page: authStateSignIn 1792324274.709 @ http://localhost:3000/index-xJZhS8vI.js:5
+[    1250ms] TypeError: Cannot read properties of undefined (reading '0')
+    at fe.selectCountryByIso2 (http://localhost:3000/telInputField-Bk82kSxF.js:1:16541)
+    at http://localhost:3000/SignInCard-C0qiIn57.js:1:3098
+[   90622ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[   90622ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[   90622ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[   90622ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[   90622ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[   90622ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[   90654ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[   90655ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[   90689ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[   90790ms] [LOG] Elapsed time since unlocked: 11.41796875 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[   90790ms] [LOG] Elapsed time since unlocked: 11.924072265625 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[   90792ms] [LOG] Elapsed time since unlocked: 13.739990234375 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[   90803ms] [LOG] Elapsed time since unlocked: 24.735107421875 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[   90814ms] [LOG] Elapsed time since unlocked: 36.10498046875 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[   90816ms] [LOG] got state, time: 131.19999998807907 @ http://localhost:3000/index-xJZhS8vI.js:5
+[   90816ms] [LOG] Elapsed time since unlocked: 37.48193359375 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[   90816ms] [LOG] Will mount auth page: authStateSignIn 1792324365.119 @ http://localhost:3000/index-xJZhS8vI.js:5
+[   91792ms] TypeError: Cannot read properties of undefined (reading '0')
+    at fe.selectCountryByIso2 (http://localhost:3000/telInputField-Bk82kSxF.js:1:16541)
+    at http://localhost:3000/SignInCard-C0qiIn57.js:1:3098
+[  357670ms] TypeError: i[r][e][t] is not a function
+    at http://localhost:3000/index.worker-D-oUJ7CX.js?__tweb_threaded_worker_protocol=4:24:47847
+    at H (http://localhost:3000/index.worker-D-oUJ7CX.js?__tweb_threaded_worker_protocol=4:3:25853)
+    at Object.callback (http://localhost:3000/index.worker-D-oUJ7CX.js?__tweb_threaded_worker_protocol=4:24:47666)
+    at e.invokeListenerCallback (http://localhost:3000/index.worker-D-oUJ7CX.js?__tweb_threaded_worker_protocol=4:3:2630)
+    at Object.processInvokeTask [as invoke] (http://localhost:3000/index.worker-D-oUJ7CX.js?__tweb_threaded_worker_protocol=4:3:5626)
+    at e.onMessage (http://localhost:3000/index.worker-D-oUJ7CX.js?__tweb_threaded_worker_protocol=4:3:4236)
+    at http://localhost:3000/index.worker-D-oUJ7CX.js?__tweb_threaded_worker_protocol=4:3:5107
+    at Array.forEach (<anonymous>)
+    at Object.processBatchTask [as batch] (http://localhost:3000/index.worker-D-oUJ7CX.js?__tweb_threaded_worker_protocol=4:3:5081)
+    at MessagePort.onMessage (http://localhost:3000/index.worker-D-oUJ7CX.js?__tweb_threaded_worker_protocol=4:3:4236)

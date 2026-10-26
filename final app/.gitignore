@@ -1,0 +1,6 @@
+bot/data.json
+bot/data.json.tmp
+bot/cloudflared.log
+bot/node_modules/
+.env
+*.log

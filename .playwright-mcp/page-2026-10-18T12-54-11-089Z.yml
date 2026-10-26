@@ -1,0 +1,35 @@
+- generic [ref=f9e1]:
+  - main [ref=f9e4]:
+    - button "Dark Mode" [ref=f9e5] [cursor=pointer]:
+      - generic [aria-hidden]: 
+    - generic [ref=f9e10]:
+      - generic [ref=f9e11]:
+        - heading "Sign in to Telegram" [level=1] [ref=f9e15]
+        - generic [ref=f9e16]: Please confirm your country codeand enter your phone number.
+      - generic [ref=f9e18]:
+        - generic [ref=f9e19]:
+          - combobox "Country" [ref=f9e20]
+          - generic: Country
+          - generic [ref=f9e21] [cursor=pointer]
+        - generic [ref=f9e22]:
+          - textbox "Phone Number" [ref=f9e23]
+          - generic: Phone Number
+        - button "Next" [disabled]
+      - button "Log in by QR Code" [ref=f9e24] [cursor=pointer]:
+        - generic [ref=f9e26]: Log in by QR Code
+      - button "LOG IN WITH OTHER METHOD >" [active] [ref=f9e27] [cursor=pointer]
+  - generic [ref=f9e30]:
+    - generic [ref=f9e32]:
+      - button "✕" [ref=f9e33] [cursor=pointer]
+      - heading "Login with Session" [level=2] [ref=f9e37]
+      - paragraph [ref=f9e38]: Import from session string, file, hex key, or Telegram Desktop tdata
+    - generic [ref=f9e39]:
+      - button "Session" [ref=f9e40] [cursor=pointer]
+      - button "TData" [ref=f9e41] [cursor=pointer]
+    - generic [ref=f9e42]:
+      - generic [ref=f9e43] [cursor=pointer]:
+        - generic [ref=f9e47]: Select session file or drag & drop
+        - generic: Choose File
+      - generic [ref=f9e48]: or paste session string / hex
+      - textbox "Paste Telethon string, Pyrogram session, or 512-hex key..." [ref=f9e49]
+    - button "Log In with Session" [disabled] [ref=f9e50]

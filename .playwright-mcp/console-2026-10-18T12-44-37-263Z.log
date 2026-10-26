@@ -1,0 +1,40 @@
+[      76ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[      76ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[      76ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[      76ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[      76ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[      76ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[     119ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[     119ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[     180ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     342ms] [LOG] Elapsed time since unlocked: 14.41796875 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[     343ms] [LOG] Elapsed time since unlocked: 15.9111328125 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[     348ms] [LOG] Elapsed time since unlocked: 21.22412109375 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     393ms] [LOG] Elapsed time since unlocked: 66.26904296875 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[     401ms] [LOG] Elapsed time since unlocked: 74.14111328125 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     408ms] [LOG] got state, time: 240.80000001192093 @ http://localhost:3000/index-xJZhS8vI.js:5
+[     408ms] [LOG] Elapsed time since unlocked: 81.744140625 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[     410ms] [LOG] Will mount auth page: authStateSignIn 1792327477.673 @ http://localhost:3000/index-xJZhS8vI.js:5
+[     457ms] [LOG] CALLING e(h)... function de(e){console.log("[DEBUG] de called, Y is:", !!Y); if(Y){console.log("[DEBUG] existing Y called:", new Error().stack); Y();}I(Z(e));let t=document.createElement('div');t.id='auth-flow-root';t.style.display='contents';
+console.log('[DEBUG] BEFORE appendChild t, body childCount:', document.body.childElementCount);
+document.body.appendChild(t);
+console.log('[DEBUG] AFTER appendChild t, inDOM:', document.body.contains(t), 'id check:', !!document.getElementById('auth-flow-root'));
+new MutationObserver((mutations) => {
+  for(let rec of mutations) {
+    for(let rem of rec.removedNodes) {
+      if(rem === t || rem.id === 'auth-flow-root' || (rem.contains && rem.contains(t))) {
+        console.error('[DEBUG] REMOVAL DETECTED by observer! removed node:', rem, new Error().stack);
+      }
+    }
+  }
+}).observe(document.body, {childList: true, subtree: true});let n=D(()=>g(ce,{}),t);return Y=()=>{console.log("[DEBUG] Y cleanup executing!", new Error().stack); n(); t.remove(); Y=null;},Y} {_: authStateSignIn} @ http://localhost:3000/index-xJZhS8vI.js:5
+[     458ms] [LOG] [DEBUG] de called, Y is: false @ http://localhost:3000/bootstrapIm-CN5TTab5.js:1
+[     458ms] [LOG] [DEBUG] BEFORE appendChild t, body childCount: 8 @ http://localhost:3000/bootstrapIm-CN5TTab5.js:2
+[     458ms] [LOG] [DEBUG] AFTER appendChild t, inDOM: true id check: true @ http://localhost:3000/bootstrapIm-CN5TTab5.js:4
+[     458ms] [LOG] [DEBUG] ce() START, current P(): {name: signIn} @ http://localhost:3000/bootstrapIm-CN5TTab5.js:1
+[     462ms] [LOG] [DEBUG] le() START, L('signIn'): {name: signIn} L('signQR'): null @ http://localhost:3000/bootstrapIm-CN5TTab5.js:1
+[     470ms] [LOG] [DEBUG] h() START @ http://localhost:3000/bootstrapIm-CN5TTab5.js:1
+[     474ms] [LOG] e(h) CALLED SUCCESSFULLY @ http://localhost:3000/index-xJZhS8vI.js:5
+[     498ms] [LOG] [DEBUG] SignInCard function F CALLED! @ http://localhost:3000/SignInCard-C0qiIn57.js:0
+[     553ms] [ERROR] [DEBUG] REMOVAL DETECTED by observer! removed node: JSHandle@node Error
+    at MutationObserver.observe.childList (http://localhost:3000/bootstrapIm-CN5TTab5.js:10:83) @ http://localhost:3000/bootstrapIm-CN5TTab5.js:9

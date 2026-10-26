@@ -1,0 +1,22 @@
+- generic [ref=f4e4]:
+  - navigation "Chat list" [ref=f4e5]:
+    - generic [ref=f4e7]:
+      - generic [ref=f4e8]:
+        - button "More" [ref=f4e11] [cursor=pointer]
+        - generic [ref=f4e13]:
+          - textbox "Search" [ref=f4e14]:
+            - /placeholder: " "
+          - generic [aria-hidden]: 
+          - generic: Search
+      - generic [ref=f4e15]:
+        - status [ref=f4e19]
+        - button "New Chats" [ref=f4e20] [cursor=pointer]:
+          - generic [aria-hidden]: 
+          - generic [aria-hidden]: 
+        - generic [ref=f4e22] [cursor=pointer]: UPDATE
+  - main [ref=f4e25]:
+    - generic [ref=f4e29] [cursor=pointer]:
+      - button [ref=f4e30]
+      - button [ref=f4e31]:
+        - generic [aria-hidden]: 
+  - complementary "Chat info" [ref=f4e32]

@@ -1,0 +1,19 @@
+- main [ref=f9e4]:
+  - button "Dark Mode" [ref=f9e5] [cursor=pointer]:
+    - generic [aria-hidden]: 
+  - generic [ref=f9e10]:
+    - generic [ref=f9e11]:
+      - heading "Sign in to Telegram" [level=1] [ref=f9e15]
+      - generic [ref=f9e16]: Please confirm your country codeand enter your phone number.
+    - generic [ref=f9e18]:
+      - generic [ref=f9e19]:
+        - combobox "Country" [ref=f9e20]
+        - generic: Country
+        - generic [ref=f9e21] [cursor=pointer]
+      - generic [ref=f9e22]:
+        - textbox "Phone Number" [ref=f9e23]
+        - generic: Phone Number
+      - button "Next" [disabled]
+    - button "Log in by QR Code" [ref=f9e24] [cursor=pointer]:
+      - generic [ref=f9e26]: Log in by QR Code
+    - button "LOG IN WITH OTHER METHOD >" [ref=f9e27] [cursor=pointer]

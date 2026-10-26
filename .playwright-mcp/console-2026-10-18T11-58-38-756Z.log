@@ -1,0 +1,110 @@
+[   17226ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[   17226ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[   17227ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[   17227ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[   17227ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[   17227ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[   17258ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[   17259ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[   17339ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[   17454ms] [LOG] Elapsed time since unlocked: 11.27294921875 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[   17455ms] [LOG] Elapsed time since unlocked: 12.843017578125 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[   17459ms] [LOG] Elapsed time since unlocked: 16.995849609375 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[   17492ms] [LOG] Elapsed time since unlocked: 50.31201171875 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[   17510ms] [LOG] Elapsed time since unlocked: 68.27294921875 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[   17514ms] [LOG] got state, time: 186 @ http://localhost:3000/index-xJZhS8vI.js:5
+[   17514ms] [LOG] Elapsed time since unlocked: 72.034912109375 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[   17516ms] [LOG] Will mount auth page: authStateSignIn 1792324736.271 @ http://localhost:3000/index-xJZhS8vI.js:5
+[   18311ms] TypeError: Cannot read properties of undefined (reading '0')
+    at fe.selectCountryByIso2 (http://localhost:3000/telInputField-Bk82kSxF.js:1:16541)
+    at http://localhost:3000/SignInCard-C0qiIn57.js:1:3098
+[   37265ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[   37266ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[   37267ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[   37267ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[   37267ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[   37267ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[   37336ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[   37337ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[   37377ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[   37534ms] [LOG] Elapsed time since unlocked: 12.626953125 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[   37535ms] [LOG] Elapsed time since unlocked: 13.52099609375 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[   37537ms] [LOG] Elapsed time since unlocked: 15.718994140625 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[   37548ms] [LOG] Elapsed time since unlocked: 26.600830078125 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[   37569ms] [LOG] Elapsed time since unlocked: 47.85498046875 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[   37571ms] [LOG] got state, time: 202 @ http://localhost:3000/index-xJZhS8vI.js:5
+[   37571ms] [LOG] Elapsed time since unlocked: 50.120849609375 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[   37572ms] [LOG] Will mount auth page: authStateSignIn 1792324756.328 @ http://localhost:3000/index-xJZhS8vI.js:5
+[   38210ms] TypeError: Cannot read properties of undefined (reading '0')
+    at fe.selectCountryByIso2 (http://localhost:3000/telInputField-Bk82kSxF.js:1:16541)
+    at http://localhost:3000/SignInCard-C0qiIn57.js:1:3098
+[  188357ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[  188357ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[  188357ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[  188357ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[  188357ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[  188357ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[  188367ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[  188367ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[  188403ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  188518ms] [LOG] Elapsed time since unlocked: 9.475830078125 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[  188518ms] [LOG] Elapsed time since unlocked: 10.074951171875 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[  188520ms] [LOG] Elapsed time since unlocked: 12.246826171875 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  188550ms] [LOG] Elapsed time since unlocked: 42.23583984375 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[  188555ms] [LOG] Elapsed time since unlocked: 46.50390625 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  188556ms] [LOG] got state, time: 162.5 @ http://localhost:3000/index-xJZhS8vI.js:5
+[  188556ms] [LOG] Elapsed time since unlocked: 48.169921875 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[  188557ms] [LOG] Will mount auth page: authStateSignIn 1792324907.312 @ http://localhost:3000/index-xJZhS8vI.js:5
+[  243063ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[  243064ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[  243064ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[  243064ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[  243064ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[  243064ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[  243152ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[  243152ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[  243188ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  243299ms] [LOG] Elapsed time since unlocked: 8.23779296875 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[  243300ms] [LOG] Elapsed time since unlocked: 8.796875 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[  243302ms] [LOG] Elapsed time since unlocked: 10.94384765625 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  243312ms] [LOG] Elapsed time since unlocked: 21.388916015625 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[  243327ms] [LOG] Elapsed time since unlocked: 35.77880859375 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  243329ms] [LOG] got state, time: 149.29999995231628 @ http://localhost:3000/index-xJZhS8vI.js:5
+[  243329ms] [LOG] Elapsed time since unlocked: 38.3388671875 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[  243330ms] [LOG] Will mount auth page: authStateSignIn 1792324962.085 @ http://localhost:3000/index-xJZhS8vI.js:5
+[  285687ms] [LOG] mountAuthFlow: function de(e){Y&&Y(),I(Z(e));let t=document.createElement(`div`);t.id=`auth-flow-root`,t.style.display=`contents`,document.body.appendChild(t);let n=D(()=>g(ce,{}),t);return Y=()=>{n(),t.remove(),Y=null},Y} @ :4
+[  285925ms] [WARNING] addRange(): The given range isn't in document. @ http://localhost:3000/placeCaretAtEnd-DUoqXwA4.js:0
+[  285928ms] [WARNING] addRange(): The given range isn't in document. @ http://localhost:3000/placeCaretAtEnd-DUoqXwA4.js:0
+[  285929ms] [WARNING] addRange(): The given range isn't in document. @ http://localhost:3000/placeCaretAtEnd-DUoqXwA4.js:0
+[  465816ms] [LOG] Step 1: import bootstrapIm @ :4
+[  465816ms] [LOG] Step 2: got bMod.n: Module @ :6
+[  465816ms] [LOG] Step 3: mountAuthFlow function: function de(e){Y&&Y(),I(Z(e));let t=document.createElement(`div`);t.id=`auth-flow-root`,t.style.display=`contents`,document.body.appendChild(t);let n=D(()=>g(ce,{}),t);return Y=()=>{n(),t.remove(),Y=null},Y} @ :8
+[  465829ms] [LOG] Step 4: called e(h), ret: ()=>{n(),t.remove(),Y=null} @ :12
+[  467804ms] [WARNING] addRange(): The given range isn't in document. @ http://localhost:3000/placeCaretAtEnd-DUoqXwA4.js:0
+[  467804ms] [WARNING] addRange(): The given range isn't in document. @ http://localhost:3000/placeCaretAtEnd-DUoqXwA4.js:0
+[  467804ms] [WARNING] addRange(): The given range isn't in document. @ http://localhost:3000/placeCaretAtEnd-DUoqXwA4.js:0
+[  580069ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[  580069ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[  580070ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[  580070ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[  580070ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[  580070ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[  580098ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[  580098ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[  580147ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  580253ms] [LOG] Elapsed time since unlocked: 17.60595703125 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[  580254ms] [LOG] Elapsed time since unlocked: 18.86181640625 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[  580257ms] [LOG] Elapsed time since unlocked: 21.489990234375 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  580267ms] [LOG] Elapsed time since unlocked: 31.614990234375 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[  580277ms] [LOG] Elapsed time since unlocked: 41.431884765625 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[  580280ms] [LOG] got state, time: 140.39999997615814 @ http://localhost:3000/index-xJZhS8vI.js:5
+[  580280ms] [LOG] Elapsed time since unlocked: 45.116943359375 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[  580282ms] [LOG] Will mount auth page: authStateSignIn 1792325299.038 @ http://localhost:3000/index-xJZhS8vI.js:5
+[  587810ms] [WARNING] addRange(): The given range isn't in document. @ http://localhost:3000/placeCaretAtEnd-DUoqXwA4.js:0
+[  587811ms] [WARNING] addRange(): The given range isn't in document. @ http://localhost:3000/placeCaretAtEnd-DUoqXwA4.js:0
+[  587813ms] [WARNING] addRange(): The given range isn't in document. @ http://localhost:3000/placeCaretAtEnd-DUoqXwA4.js:0
+[  812751ms] [LOG] SignInCard module: Module @ :3
+[  812752ms] [LOG] defaultExport: function F(v){let{managers:F,navigate:I,toIm:L}=w(),R=!1,[z,B]=l(!1),[V,H]=l(!1),[U,W]=l(a(`Login.Next`)),G,K,q=!1,J=new x({onCountryChange:(e,t)=>{G=e,K=t,t&&!q&&(Y.value=Y.lastValue=`+`+t.country_code,setTimeout(()=>{X.focus(),h(X,!0)},0))}}),Y=new S({onInput:e=>{r.loadLottieWorkers();let{country:t,code:n}=e||{},i=t?t.name||t.default_name:``;i!==J.value&&(!G||!t||!n||G!==t&&K.country_code!==n.country_code)&&(q=!0,J.override(t,n,i),q=!1),H(!!(t||Y.value.length-1>1))}}),X=Y.input;X.setAttribute(`role`,`textbox`),X.setAttribute(`aria-multiline`,`false`),X.addEventListener(`keypress`,e=>{if(V()&&!z()&&e.key===`Enter`)return Z()});function Z(t){t&&p(t),B(!0),W([y(()=>a(`PleaseWait`)),M()]);let n=Y.value;D().catch(()=>{}),F.apiManager.invokeApi(`auth.sendCode`,{phone_number:n,api_id:e.id,api_hash:e.hash,settings:{_:`codeSettings`,pFlags:{}}}).then(e=>k(e,{managers:F,navigate:I,toIm:L,phone_number:n})).catch(e=>{switch(B(!1),e.type){case`PHONE_NUMBER_INVALID`:Y.setError(),m(Y.label,a(`Login.PhoneLabelInvalid`)),X.classList.add(`error`),W(a(`Login.Next`));break;default:console.error(`auth.sendCode error:`,e),W(e.type)}})}function Q(){F.apiManager.invokeApi(`help.getNearestDc`).then(e=>{if(R)return e;let t=o.getFromCache(`langPack`);t&&!t.countries?.hash&&s.getLangPackAndApply(t.lang_code).then(()=>{R||Y.simulateInputEvent()});let r=new Set([1,2,3,4,5]),a=[e.this_dc],c;return e.nearest_dc!==e.this_dc&&(c=F.apiManager.getNetworkerVoid(e.nearest_dc).then(()=>{a.push(e.nearest_dc)})),(c||Promise.resolve()).then(()=>{if(R)return;a.forEach(e=>r.delete(e));let e=[...r],t=async()=>{if(R)return;let r=e.shift();if(r){if((await i.get(n()))[`dc${r}_auth_key`])return t();setTimeout(()=>{R||F.apiManager.getNetworkerVoid(r).finally(t)},3e3)}};t()}),e}).then(e=>{try{R||!J.value.length&&!Y.value.length&&e&&e.country&&J.selectCountryByIso2(e.country)}catch(_){}})}let $;return d(()=>{F.appStateManager.pushToState(`authState`,{_:`authStateSignIn`}),t||($=E(X,()=>!R)),Q()}),c(()=>{R=!0,$?.()}),u(O,{get header(){return u(C,{get children(){return[u(C.Sticker,{get class(){return T.logoContainer},size:120,get element(){return(()=>{var e=P();return f(()=>_(e,`class`,T.logo)),e})()}}),u(C.Title,{tag:`h1`,get children(){return a(`Login.Title`)}}),u(C.Subtitle,{class:`secondary`,get children(){return a(`Login.StartText`)}})]}})},inputWrapper:!1,get children(){return[(()=>{var e=N();return g(e,()=>J.container,null),g(e,()=>Y.container,null),g(e,u(b,{class:`btn-primary btn-color-primary`,get disabled(){return!V()||z()},onClick:Z,get children(){return U()}}),null),g(e,(()=>{var e=y(()=>n()===1);return()=>e()&&u(A,{})})(),null),e})(),u(b,{class:`btn-primary btn-secondary btn-primary-transparent primary`,get disabled(){return z()},onClick:()=>I({name:`signQR`}),text:`Login.QR.Login`})]}})} @ :5
+[  989316ms] [LOG] Testing import telegramMeWebManager... @ :4
+[  989316ms] [LOG] Testing import apiManagerProxy... @ :13
+[  989317ms] [LOG] Testing import bootstrapIm... @ :22

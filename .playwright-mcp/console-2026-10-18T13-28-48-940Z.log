@@ -1,0 +1,17 @@
+[      72ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[      72ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[      72ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[      73ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[      73ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[      73ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[      98ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[      98ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[     131ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     243ms] [LOG] Elapsed time since unlocked: 9.48681640625 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[     244ms] [LOG] Elapsed time since unlocked: 10.06201171875 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[     246ms] [LOG] Elapsed time since unlocked: 12.140869140625 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     255ms] [LOG] Elapsed time since unlocked: 21.0087890625 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[     275ms] [LOG] Elapsed time since unlocked: 41.284912109375 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     277ms] [LOG] got state, time: 151.60000002384186 @ http://localhost:3000/index-xJZhS8vI.js:5
+[     277ms] [LOG] Elapsed time since unlocked: 43.57080078125 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[     278ms] [LOG] Will mount IM page: 1792330129.217 @ http://localhost:3000/index-xJZhS8vI.js:5

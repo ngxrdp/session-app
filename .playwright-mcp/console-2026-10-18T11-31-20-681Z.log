@@ -1,0 +1,20 @@
+[     106ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[     107ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[     107ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[     107ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[     107ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[     107ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[     146ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[     147ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[     341ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     499ms] [LOG] Elapsed time since unlocked: 33.739013671875 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[     500ms] [LOG] Elapsed time since unlocked: 35.14892578125 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[     502ms] [LOG] Elapsed time since unlocked: 36.94189453125 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     544ms] [LOG] Elapsed time since unlocked: 78.56005859375 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[     564ms] [LOG] Elapsed time since unlocked: 98.43994140625 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     569ms] [LOG] got state, time: 241.5999999642372 @ http://localhost:3000/index-xJZhS8vI.js:5
+[     569ms] [LOG] Elapsed time since unlocked: 104.18994140625 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[     571ms] [LOG] Will mount auth page: authStateSignIn 1792323081.252 @ http://localhost:3000/index-xJZhS8vI.js:5
+[    4721ms] TypeError: Cannot read properties of undefined (reading '0')
+    at fe.selectCountryByIso2 (http://localhost:3000/telInputField-Bk82kSxF.js:1:16541)
+    at http://localhost:3000/SignInCard-C0qiIn57.js:1:3098

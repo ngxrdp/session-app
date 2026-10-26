@@ -1,0 +1,28 @@
+[      82ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ http://localhost:3000/telegram-web-app.js:134
+[      83ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ http://localhost:3000/telegram-web-app.js:134
+[      84ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ http://localhost:3000/telegram-web-app.js:134
+[      84ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ http://localhost:3000/telegram-web-app.js:134
+[      84ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[      84ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ http://localhost:3000/telegram-web-app.js:134
+[     106ms] [LOG] [Telegram.WebView] > postEvent web_app_ready  @ http://localhost:3000/telegram-web-app.js:134
+[     106ms] [LOG] [Telegram.WebView] > postEvent web_app_expand  @ http://localhost:3000/telegram-web-app.js:134
+[     144ms] [LOG] Supported image mime types Set(6) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     262ms] [LOG] Elapsed time since unlocked: 19.0400390625 ms allStates loaded @ http://localhost:3000/index-xJZhS8vI.js:5
+[     263ms] [LOG] Elapsed time since unlocked: 19.903076171875 ms singleInstance started @ http://localhost:3000/index-xJZhS8vI.js:5
+[     266ms] [LOG] Elapsed time since unlocked: 22.908935546875 ms sent all states (1) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     279ms] [LOG] Elapsed time since unlocked: 35.821044921875 ms await I18n.getCacheLangPack() @ http://localhost:3000/index-xJZhS8vI.js:5
+[     288ms] [LOG] Elapsed time since unlocked: 44.27587890625 ms sent all states (2) @ http://localhost:3000/index-xJZhS8vI.js:5
+[     290ms] [LOG] got state, time: 152.0999999642372 @ http://localhost:3000/index-xJZhS8vI.js:5
+[     291ms] [LOG] Elapsed time since unlocked: 47.31689453125 ms IMAGE_MIME_TYPES_SUPPORTED_PROMISE @ http://localhost:3000/index-xJZhS8vI.js:5
+[     292ms] [LOG] Will mount IM page: 1792331271.84 @ http://localhost:3000/index-xJZhS8vI.js:5
+[    5155ms] Object
+[    5156ms] Object
+[    5156ms] Object
+[    5156ms] Object
+[    5156ms] Object
+[    5156ms] Object
+[    5156ms] Object
+[    5156ms] Object
+[    5156ms] Object
+[    5156ms] Object
+[    6131ms] [ERROR] %s [6.016] [MP-MTPROTO] worker task error: {type: STORAGE_OFFLINE} {id: 934.366570859449, type: invoke, invoke: localStorageProxy} @ http://localhost:3000/eventListenerBase-DyZE06LJ.js:2

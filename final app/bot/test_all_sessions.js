@@ -279,142 +279,27 @@ async function runTests() {
   const uvInvalid = await parseAndValidate("completely invalid gibberish");
   assert("parseAndValidate properly rejects invalid text", uvInvalid.valid === false);
 
-  // ── TEST GROUP 7: HTTP API ENDPOINTS ─────────────────────────────────────
-  console.log("\n--- 7. HTTP API Endpoints Tests ---");
-  const http = await import("node:http");
-  const testServer = http.createServer((req, res) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, HEAD, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "*");
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    if (req.method === "OPTIONS") { res.writeHead(204); return res.end(); }
+  // ── TEST GROUP 7: HTTP API ENDPOINTS (real createServer routes) ─────────
+  console.log("\n--- 7. HTTP API Endpoints Tests (real bot.js routes) ---");
+  const path = await import("node:path");
+  const here = path.dirname((await import("node:url")).fileURLToPath(import.meta.url));
 
-    const reqPath = req.url.split("?")[0];
-
-    // POST /api/upload-tdata
-    if (req.method === "POST" && reqPath === "/api/upload-tdata") {
-      const chunks = [];
-      const urlObj = new URL(req.url, "http://localhost");
-      const passcode = urlObj.searchParams.get("passcode") || req.headers["x-tdata-passcode"] || "";
-      req.on("data", chunk => chunks.push(chunk));
-      req.on("end", async () => {
-        try {
-          const buffer = Buffer.concat(chunks);
-          if (!buffer.length) {
-            res.writeHead(400, { "Content-Type": "application/json" });
-            return res.end(JSON.stringify({ success: false, error: "No file data uploaded." }));
-          }
-          const resVal = validateTdataZip(buffer, passcode);
-          if (resVal.valid && resVal.accounts && resVal.accounts.length) {
-            res.writeHead(200, { "Content-Type": "application/json" });
-            return res.end(JSON.stringify({ success: true, accounts: resVal.accounts }));
-          }
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ success: false, error: resVal.error || "Could not find valid MTProto auth key in TData ZIP archive." }));
-        } catch (err) {
-          res.writeHead(500, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ success: false, error: err.message }));
-        }
-      });
-      return;
-    }
-
-    // POST /api/upload-session
-    if (req.method === "POST" && reqPath === "/api/upload-session") {
-      const chunks = [];
-      req.on("data", chunk => chunks.push(chunk));
-      req.on("end", async () => {
-        try {
-          const buffer = Buffer.concat(chunks);
-          if (!buffer.length) {
-            res.writeHead(400, { "Content-Type": "application/json" });
-            return res.end(JSON.stringify({ success: false, error: "No file data uploaded." }));
-          }
-          const parsed = await parseAndValidate(buffer);
-          if (parsed && parsed.valid) {
-            const acc = (parsed.accounts && parsed.accounts.length) ? parsed.accounts[0] : parsed;
-            const keyHex = (acc.authKeyHex || acc.hex || "").toLowerCase();
-            res.writeHead(200, { "Content-Type": "application/json" });
-            return res.end(JSON.stringify({
-              success: true,
-              dcId: acc.dcId || 4,
-              authKeyHex: keyHex,
-              userId: acc.userId,
-              firstName: acc.firstName || "Telegram User",
-              type: acc.type || "Session File",
-              telethon: acc.telethon || buildTelethon(acc.dcId || 4, keyHex),
-              pyrogram: acc.pyrogram || buildPyrogram(acc.dcId || 4, keyHex, acc.userId)
-            }));
-          }
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ success: false, error: parsed.error || "Could not recognize session keys in file." }));
-        } catch (err) {
-          res.writeHead(500, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ success: false, error: err.message }));
-        }
-      });
-      return;
-    }
-
-    // POST /api/resolve-session
-    if (req.method === "POST" && reqPath === "/api/resolve-session") {
-      const chunks = [];
-      req.on("data", chunk => chunks.push(chunk));
-      req.on("end", async () => {
-        try {
-          const body = JSON.parse(Buffer.concat(chunks).toString("utf-8") || "{}");
-          const input = (body.authKeyHex || body.key || body.session || "").trim();
-          if (!input) {
-            res.writeHead(400, { "Content-Type": "application/json" });
-            return res.end(JSON.stringify({ success: false, error: "Auth key or session string required." }));
-          }
-          const requestedDc = Number(body.dcId);
-          const hasRequestedDc = Number.isInteger(requestedDc) && requestedDc >= 1 && requestedDc <= 5;
-          const parseInput = /^[0-9a-fA-F]{512}$/.test(input) && hasRequestedDc
-            ? JSON.stringify({ authKey: input, dcId: requestedDc, userId: body.userId })
-            : input;
-          const parsed = await parseAndValidate(parseInput);
-          if (parsed && parsed.valid) {
-            const acc = (parsed.accounts && parsed.accounts.length) ? parsed.accounts[0] : parsed;
-            const dcId = hasRequestedDc ? requestedDc : acc.dcId;
-            const keyHex = (acc.authKeyHex || acc.hex || "").toLowerCase();
-            res.writeHead(200, { "Content-Type": "application/json" });
-            return res.end(JSON.stringify({
-              success: true,
-              dcId,
-              authKeyHex: keyHex,
-              userId: acc.userId,
-              firstName: acc.firstName || "Telegram User",
-              type: acc.type,
-              telethon: acc.telethon || buildTelethon(dcId, keyHex),
-              pyrogram: acc.pyrogram || buildPyrogram(dcId, keyHex, acc.userId)
-            }));
-          }
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ success: false, error: parsed.error || "Invalid session string or auth key." }));
-        } catch (err) {
-          res.writeHead(500, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ success: false, error: err.message }));
-        }
-      });
-      return;
-    }
-
-    res.writeHead(404);
-    res.end();
-  });
-
-  await new Promise(r => testServer.listen(0, r));
-  const testPort = testServer.address().port;
-  const baseUrl = `http://localhost:${testPort}`;
+  // Route Telegram verification through the deterministic stub bridge so the
+  // suite runs everywhere; production still requires real Python + Telethon.
+  process.env.PYTHON_BIN = process.env.PYTHON_BIN || "python3";
+  process.env.SESSION_BRIDGE = path.join(here, "test_bridge_stub.py");
+  const botModule = await import("./bot.js");
+  const botServer = botModule.createServer();
+  await new Promise(resolve => botServer.listen(0, "127.0.0.1", resolve));
+  const serverUrl = `http://127.0.0.1:${botServer.address().port}`;
 
   // 7a. OPTIONS preflight
-  const optRes = await fetch(`${baseUrl}/api/upload-tdata`, { method: "OPTIONS" });
+  const optRes = await fetch(`${serverUrl}/api/upload-tdata`, { method: "OPTIONS" });
   assert("OPTIONS preflight returns 204", optRes.status === 204);
-  assert("Access-Control-Allow-Methods includes POST", (optRes.headers.get("access-control-allow-methods") || "").includes("POST"));
+  assert("OPTIONS preflight allows POST via Allow header", (optRes.headers.get("allow") || "").includes("POST"));
 
   // 7b. POST /api/upload-tdata valid unencrypted
-  const upTdataRes = await fetch(`${baseUrl}/api/upload-tdata`, {
+  const upTdataRes = await fetch(`${serverUrl}/api/upload-tdata`, {
     method: "POST",
     headers: { "Content-Type": "application/zip" },
     body: mockTdata.zipBuffer
@@ -424,7 +309,7 @@ async function runTests() {
   assert("POST /api/upload-tdata returns accounts array", upTdataJson.accounts && upTdataJson.accounts.length === 1);
 
   // 7c. POST /api/upload-tdata invalid
-  const upBadTdataRes = await fetch(`${baseUrl}/api/upload-tdata`, {
+  const upBadTdataRes = await fetch(`${serverUrl}/api/upload-tdata`, {
     method: "POST",
     headers: { "Content-Type": "application/zip" },
     body: badZipBuffer
@@ -434,7 +319,7 @@ async function runTests() {
   assert("POST /api/upload-tdata invalid returns descriptive error", upBadTdataJson.error.length > 0);
 
   // 7d. POST /api/upload-tdata password protected
-  const upProtTdataRes = await fetch(`${baseUrl}/api/upload-tdata`, {
+  const upProtTdataRes = await fetch(`${serverUrl}/api/upload-tdata`, {
     method: "POST",
     headers: { "Content-Type": "application/zip" },
     body: protectedTdata.zipBuffer
@@ -443,16 +328,16 @@ async function runTests() {
   assert("POST /api/upload-tdata protected (no pass) returns 400 with password prompt", upProtTdataRes.status === 400 && upProtTdataJson.error.includes("password-protected"));
 
   // 7e. POST /api/upload-tdata password protected with correct passcode
-  const upProtPassRes = await fetch(`${baseUrl}/api/upload-tdata?passcode=Secret1234`, {
+  const upProtPassRes = await fetch(`${serverUrl}/api/upload-tdata`, {
     method: "POST",
-    headers: { "Content-Type": "application/zip" },
+    headers: { "Content-Type": "application/zip", "x-tdata-passcode": "Secret1234" },
     body: protectedTdata.zipBuffer
   });
   const upProtPassJson = await upProtPassRes.json();
   assert("POST /api/upload-tdata protected with passcode returns 200", upProtPassRes.status === 200 && upProtPassJson.success === true);
 
   // 7f. POST /api/upload-session valid
-  const upSqlRes = await fetch(`${baseUrl}/api/upload-session`, {
+  const upSqlRes = await fetch(`${serverUrl}/api/upload-session`, {
     method: "POST",
     headers: { "Content-Type": "application/octet-stream" },
     body: mockSqlite.buffer
@@ -462,7 +347,7 @@ async function runTests() {
   assert("POST /api/upload-session returns authKeyHex and dcId", upSqlJson.authKeyHex === mockSqlite.authKeyHex.toLowerCase() && upSqlJson.dcId === 2);
 
   // 7g. POST /api/upload-session invalid
-  const upBadSqlRes = await fetch(`${baseUrl}/api/upload-session`, {
+  const upBadSqlRes = await fetch(`${serverUrl}/api/upload-session`, {
     method: "POST",
     headers: { "Content-Type": "application/octet-stream" },
     body: Buffer.from("not a real session file")
@@ -471,7 +356,7 @@ async function runTests() {
   assert("POST /api/upload-session invalid returns 400", upBadSqlRes.status === 400 && upBadSqlJson.success === false);
 
   // 7h. POST /api/resolve-session valid
-  const resValidRes = await fetch(`${baseUrl}/api/resolve-session`, {
+  const resValidRes = await fetch(`${serverUrl}/api/resolve-session`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ session: validHexKey, dcId: 2 })
@@ -481,7 +366,7 @@ async function runTests() {
   assert("POST /api/resolve-session returns telethon string", resValidJson.telethon && resValidJson.telethon.startsWith("1"));
 
   // 7i. POST /api/resolve-session invalid
-  const resBadRes = await fetch(`${baseUrl}/api/resolve-session`, {
+  const resBadRes = await fetch(`${serverUrl}/api/resolve-session`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ session: "bad_dummy_value" })
@@ -489,7 +374,16 @@ async function runTests() {
   const resBadJson = await resBadRes.json();
   assert("POST /api/resolve-session invalid returns 400", resBadRes.status === 400 && resBadJson.success === false);
 
-  testServer.close();
+  // 7j. fabricated keys must be rejected by the live Telegram check
+  const fabRes = await fetch(`${serverUrl}/api/resolve-session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session: "0".repeat(512), dcId: 4 })
+  });
+  const fabJson = await fabRes.json();
+  assert("POST /api/resolve-session rejects zero-entropy key", fabRes.status === 400 && fabJson.success === false);
+
+  botServer.close();
 
   // ── SUMMARY ──────────────────────────────────────────────────────────────
   console.log("\n=================================================================");

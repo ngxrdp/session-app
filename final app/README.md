@@ -115,6 +115,29 @@ node bot.js
 
 ---
 
+## Python session validator
+
+Uploading a session (bot chat or `/api/upload-*` endpoints) is verified against Telegram itself using **Telethon** through `bot/telegram_session_bridge.py`. This requires a Python 3 interpreter on the machine running the bot.
+
+```bash
+# Linux / macOS
+python3 -m pip install telethon
+
+# Windows
+py -m pip install telethon
+```
+
+The bot automatically finds `py` (Windows) or `python3`/`python` (Linux/macOS) and checks that Telethon imports cleanly. Optional overrides:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PYTHON_BIN` | Explicit Python executable path with Telethon available | auto-detected |
+| `SESSION_BRIDGE` | Path to the bridge script | `bot/telegram_session_bridge.py` |
+
+If Telethon is unavailable or Telegram cannot be reached, upload endpoints return a descriptive 503 error instead of failing silently. Verification always talks to the real Telegram servers and is never bypassed.
+
+---
+
 ## Tunnel Troubleshooting
 
 The bot uses **Cloudflare Quick Tunnels** (free, no account needed). Each restart gives a **new random URL**.

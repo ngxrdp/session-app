@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import {
   parseAndValidate,
   validateHexKey,
@@ -43,12 +43,29 @@ function encodeSessionsURL(baseUrl, sessions) {
   return `${baseUrl}/#tgss=${b64}`;
 }
 
+// Telegram rejects web_app button URLs above ~2048 characters, so the
+// session payload must stay inside a safe budget. With sessions growing a
+// few hundred characters each, only a limited set of sessions fits into
+// "Open App"; older ones keep working through the import modal instead.
+const MAX_WEBAPP_URL_LENGTH = 1950;
+
 // Build the best Open App URL for a user (with sessions if any)
 function buildWebAppUrl(baseUrl, userId) {
   const sessions = db.sessions[String(userId)] || [];
   if (sessions.length === 0) return baseUrl;
-  if (sessions.length === 1) return encodeSessionURL(baseUrl, sessions[0]);
-  return encodeSessionsURL(baseUrl, sessions); // multi → picker
+  if (sessions.length === 1) {
+    const url = encodeSessionURL(baseUrl, sessions[0]);
+    return url.length <= MAX_WEBAPP_URL_LENGTH ? url : baseUrl;
+  }
+
+  // Multiple sessions: keep as many of the MOST RECENT as the URL budget
+  // allows; dropped (oldest) sessions still work via the import modal.
+  for (let n = sessions.length; n >= 2; n--) {
+    const url = encodeSessionsURL(baseUrl, sessions.slice(sessions.length - n));
+    if (url.length <= MAX_WEBAPP_URL_LENGTH) return url;
+  }
+  const single = encodeSessionURL(baseUrl, sessions[sessions.length - 1]);
+  return single.length <= MAX_WEBAPP_URL_LENGTH ? single : baseUrl;
 }
 
 // ─── CONFIG ────────────────────────────────────────────────────────────────────
@@ -61,17 +78,45 @@ const MAX_SESSION_UPLOAD_BYTES = 8 * 1024 * 1024;
 const MAX_TDATA_UPLOAD_BYTES = 32 * 1024 * 1024;
 const MAX_JSON_BODY_BYTES = 1024 * 1024;
 const MAX_SESSIONS_PER_USER = 25;
-const PYTHON_BIN = process.env.PYTHON_BIN || path.join(
-  os.homedir(), ".cache", "codex-runtimes", "codex-primary-runtime",
-  "dependencies", "python", "python.exe"
-);
 const PYTHON_PACKAGES = path.join(__dirname, "python_packages");
-const SESSION_BRIDGE = path.join(__dirname, "telegram_session_bridge.py");
+const SESSION_BRIDGE = process.env.SESSION_BRIDGE || path.join(__dirname, "telegram_session_bridge.py");
+const PYTHON_BIN = process.env.PYTHON_BIN
+  || resolvePythonBin();
+
+// Locate a Python interpreter that can import Telethon. Resolution order:
+// 1. PYTHON_BIN env var  2. legacy bundled runtime path  3. PATH lookup
+// (py launcher on Windows, python3/python elsewhere) with Telethon importable
+// either from the local python_packages folder or the interpreter's own site
+// packages. Without it, session verification with Telegram is impossible.
+function resolvePythonBin() {
+  const inheritedPath = process.env.PYTHONPATH
+    ? `${PYTHON_PACKAGES}${path.delimiter}${process.env.PYTHONPATH}`
+    : PYTHON_PACKAGES;
+  const candidates = [
+    path.join(os.homedir(), ".cache", "codex-runtimes", "codex-primary-runtime", "dependencies", "python", "python.exe"),
+    "py",
+    "python3",
+    "python",
+  ];
+  for (const candidate of candidates) {
+    try {
+      const probe = spawnSync(candidate, ["-c", "import telethon; print('ok')"], {
+        timeout: 20000,
+        encoding: "utf8",
+        env: { ...process.env, PYTHONPATH: inheritedPath },
+      });
+      if (!probe.error && probe.status === 0) return candidate;
+    } catch (e) {}
+  }
+  return null;
+}
 
 function verifySessionWithTelegram({ buffer, session }) {
   return new Promise((resolve, reject) => {
-    if (!fs.existsSync(PYTHON_BIN) || !fs.existsSync(SESSION_BRIDGE)) {
-      reject(new Error("Python session validator is not installed on this server."));
+    if (!PYTHON_BIN || !fs.existsSync(SESSION_BRIDGE)) {
+      reject(new Error(
+        "Session verification with Telegram is unavailable on this server: a Python interpreter with the Telethon package is missing. The bot admin must install Python 3 and Telethon (see README, 'Python session validator')."
+      ));
       return;
     }
 
@@ -526,11 +571,12 @@ async function handleText(msg, webAppUrl) {
 
 // ─── CALLBACK QUERIES ──────────────────────────────────────────────────────────
 async function handleCallback(cb, webAppUrl) {
-  const chatId = cb.message.chat.id;
+  const chatId = cb.message?.chat?.id;
   const userId = cb.from.id;
   const data   = cb.data;
 
   if (cb.id !== "0") await tgCall("answerCallbackQuery", { callback_query_id: cb.id });
+  if (!chatId) return; // original message was deleted or is unavailable
 
   // ── ADMIN ────────────────────────────────────────────────────────────────
   if (data.startsWith("admin:")) {
@@ -853,16 +899,17 @@ async function startPolling(webAppUrl) {
                     const sessions = db.sessions[String(userId)] || [];
                     const key = validatedKey.authKeyHex;
                     const tSession = buildTelethon(dcId, key);
-                    const pSession = buildPyrogram(dcId, key, payload.userId);
+                    const savedUserId = payload.userId || userId;
+                    const pSession = buildPyrogram(dcId, key, savedUserId);
                     const entry = {
                       id: Date.now(),
-                      label: boundedText(payload.label || (payload.firstName ? `${payload.firstName} (${payload.phone || payload.userId || 'Session'})` : `Session ${sessions.length + 1}`), `Session ${sessions.length + 1}`),
+                      label: boundedText(payload.label || (payload.firstName ? `${payload.firstName} (${payload.phone || savedUserId || 'Session'})` : `Session ${sessions.length + 1}`), `Session ${sessions.length + 1}`),
                       dcId,
                       authKeyHex: key,
                       telethon: tSession,
                       pyrogram: pSession,
                       hex: key,
-                      userId: payload.userId,
+                      userId: savedUserId,
                       firstName: boundedText(payload.firstName, "Telegram User"),
                       phone: boundedText(payload.phone, "", 32),
                       type: boundedText(payload.type, 'MiniApp Import'),
@@ -1008,6 +1055,10 @@ function createServer() {
           res.end(JSON.stringify({ success: false, error: resVal.error || "Could not find valid MTProto auth key in TData ZIP archive." }));
         } catch (err) {
           console.error("[HTTP] TData parsing failed:", err.message);
+          if (/not installed|Timed out|timed out/i.test(err.message || "")) {
+            res.writeHead(503, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ success: false, error: err.message }));
+          }
           res.writeHead(500, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ success: false, error: "TData parsing failed." }));
         }
@@ -1055,6 +1106,10 @@ function createServer() {
           res.end(JSON.stringify({ success: false, error: parsed.error || "Could not recognize session keys in file." }));
         } catch (err) {
           console.error("[HTTP] Session parsing failed:", err.message);
+          if (/not installed|Timed out|timed out/i.test(err.message || "")) {
+            res.writeHead(503, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ success: false, error: err.message }));
+          }
           res.writeHead(500, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ success: false, error: "Session parsing failed." }));
         }
@@ -1114,6 +1169,10 @@ function createServer() {
             return res.end(JSON.stringify({ success: false, error: "Malformed JSON request." }));
           }
           console.error("[HTTP] Session resolution failed:", err.message);
+          if (/not installed|Timed out|timed out/i.test(err.message || "")) {
+            res.writeHead(503, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ success: false, error: err.message }));
+          }
           res.writeHead(500, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ success: false, error: "Session resolution failed." }));
         }

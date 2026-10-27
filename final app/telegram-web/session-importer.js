@@ -297,10 +297,13 @@
     // Associate the auth key strictly with the session's actual DC
     accountData[`dc${dc}_auth_key`] = cleanKey;
     try {
+      // A stale screen-lock marker (any value) makes initApi exit before the
+      // session restore; the app re-writes it when a passcode is actually set.
+      localStorage.removeItem('tt-is-screen-locked');
       localStorage.setItem('account1', JSON.stringify(accountData));
 
       localStorage.setItem('user_auth', JSON.stringify({ dcID: dc, id: numericUid, test: false, date: now }));
-      localStorage.setItem('dc', JSON.stringify(dc));
+      localStorage.setItem('dc', String(dc));
       localStorage.setItem('current_account', JSON.stringify(1));
       localStorage.setItem('number_of_accounts', JSON.stringify(1));
       localStorage.setItem('kz_version', JSON.stringify('K'));

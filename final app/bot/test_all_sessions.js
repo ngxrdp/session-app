@@ -1,4 +1,6 @@
 import crypto from "node:crypto";
+import fs from "node:fs";
+import os from "node:os";
 import AdmZip from "adm-zip";
 import initSqlJs from "sql.js";
 import {
@@ -288,6 +290,10 @@ async function runTests() {
   // suite runs everywhere; production still requires real Python + Telethon.
   process.env.PYTHON_BIN = process.env.PYTHON_BIN || "python3";
   process.env.SESSION_BRIDGE = path.join(here, "test_bridge_stub.py");
+  // Login-flow tests need the stub login worker and a throwaway data file so
+  // nothing real is written next to bot.js. Both are read at module init.
+  process.env.LOGIN_BRIDGE = path.join(here, "test_login_bridge.py");
+  process.env.DATA_FILE = path.join(os.tmpdir(), `session-bot-test-data-${Date.now()}.json`);
   const botModule = await import("./bot.js");
   const botServer = botModule.createServer();
   await new Promise(resolve => botServer.listen(0, "127.0.0.1", resolve));
@@ -384,6 +390,76 @@ async function runTests() {
   assert("POST /api/resolve-session rejects zero-entropy key", fabRes.status === 400 && fabJson.success === false);
 
   botServer.close();
+
+  // ── TEST GROUP 8: OTP LOGIN FLOW (real handlers + stub login worker) ─────
+  console.log("\n--- 8. OTP Login Flow Tests (real bot.js handlers) ---");
+  const TEST_UID = 7113666466; // baked-in admin id: permitted for the flow
+  const sentMessages = [];
+  botModule.setTgCallHook(async (method, body) => {
+    if (method === "sendMessage" && body) {
+      sentMessages.push(String(body.text ?? ""));
+      return { ok: true, result: { message_id: sentMessages.length, chat: { id: body.chat_id }, text: body.text } };
+    }
+    return { ok: true, result: {} };
+  });
+
+  const flowMsg = (text) => ({ chat: { id: TEST_UID }, from: { id: TEST_UID }, text });
+  const flowCb = (data) => ({ id: "0", from: { id: TEST_UID }, message: { chat: { id: TEST_UID } }, data });
+  const lastSent = () => sentMessages[sentMessages.length - 1] ?? "";
+
+  await botModule.handleCallback(flowCb("user:login"), "https://app.example");
+  assert("Login button opens the OTP prompt", lastSent().includes("Login by OTP"));
+
+  const invalidInputCount = sentMessages.length;
+  await botModule.handleText(flowMsg("no digits here"), "https://app.example");
+  assert("Login rejects input without digits", sentMessages.length === invalidInputCount + 1 && lastSent().includes("Invalid number"));
+
+  await botModule.handleText(flowMsg("987 6500"), "https://app.example");
+  assert("OTP prompt arrives from the stub worker", lastSent().includes("OTP Sent"));
+  assert("Phone number is normalized with a plus", lastSent().includes("+9876500"));
+
+  await botModule.handleText(flowMsg("99999"), "https://app.example");
+  assert("Wrong code keeps the login flow alive", lastSent().includes("Wrong code. Try again:"));
+
+  await botModule.handleText(flowMsg("22222"), "https://app.example");
+  assert("2FA step is reached", lastSent().includes("2FA Required"));
+
+  await botModule.handleText(flowMsg("no"), "https://app.example");
+  assert("Short passwords are rejected locally", lastSent().includes("two-factor password"));
+
+  await botModule.handleText(flowMsg("8888"), "https://app.example");
+  assert("Wrong 2FA password re-asks", lastSent().includes("Wrong 2FA password. Try again:"));
+
+  await botModule.handleText(flowMsg("SecretPass1"), "https://app.example");
+  assert("Successful login shows the created message", lastSent().includes("Session Created!"));
+
+  const storedData = JSON.parse(fs.readFileSync(process.env.DATA_FILE, "utf-8"));
+  const savedSessions = storedData.sessions[String(TEST_UID)];
+  assert("OTP login persisted exactly one session", Array.isArray(savedSessions) && savedSessions.length === 1);
+  if (Array.isArray(savedSessions) && savedSessions.length === 1) {
+    const record = savedSessions[0];
+    assert("Saved record type is OTP Login", record.type === "OTP Login");
+    assert("Saved record DC came from the worker", record.dcId === 4);
+    assert("Saved record keeps the phone number", record.phone === "+9876500");
+    assert("Saved record stores the Telegram user id", record.userId === "998877");
+    assert("Saved record carries the stub auth key", record.authKeyHex === "ab".repeat(256));
+    assert("Saved record has a Telethon string", typeof record.telethon === "string" && record.telethon.startsWith("1"));
+    assert("Saved record has a Pyrogram string", typeof record.pyrogram === "string" && record.pyrogram.length > 1);
+  }
+
+  await botModule.handleCallback(flowCb("user:login"), "https://app.example");
+  assert("A second login can start after success", lastSent().includes("Login by OTP"));
+  await botModule.handleText(flowMsg("9876501"), "https://app.example");
+  assert("Second OTP prompt arrives", lastSent().includes("OTP Sent"));
+  await botModule.handleText(flowMsg("/cancel"), "https://app.example");
+  assert("Cancel ends the login", lastSent().includes("Login cancelled"));
+  const stableCount = sentMessages.length;
+  await botModule.handleText(flowMsg("random leftover text"), "https://app.example");
+  assert("Text after cancel is treated as plain chat", sentMessages.length === stableCount);
+
+  botModule.setTgCallHook(null);
+  try { fs.unlinkSync(process.env.DATA_FILE); } catch (e) {}
+  assert("Temp data file removed after flow tests", !fs.existsSync(process.env.DATA_FILE));
 
   // ── SUMMARY ──────────────────────────────────────────────────────────────
   console.log("\n=================================================================");

@@ -138,6 +138,25 @@ The bot automatically finds `py` (Windows) or `python3`/`python` (Linux/macOS) a
 
 ---
 
+## Log in by phone (OTP)
+
+Every permitted user can log an account into the bot **without any file or string** — the same flow as the classic phone-OTP login:
+
+1. Tap **Login by OTP** in the bot menu (or any keyboard that shows it).
+2. Send the phone number with country code, e.g. `+15551234567`.
+3. Telegram delivers a login code — paste it in the chat.
+4. Accounts with two-factor verification ask for the password next (it is never stored).
+5. On success the account is saved to `data.json` as an `OTP Login` session and the bot shows the **Open App** button.
+
+Implementation notes:
+
+- The flow runs through `bot/login_bridge.py`, a persistent Telethon worker (JSON-lines over stdio). One live Telegram connection spans the whole `phone → code → 2FA` conversation, because Telegram binds each `phone_code_hash` to the client that requested it.
+- API credentials: the bot's `TELEGRAM_API_ID` / `TELEGRAM_API_HASH` if set, otherwise the operator pair from the working Python core, with three well-known official-client pairs as fallbacks (`38785545`, `2040`, `4`, `6`).
+- `/cancel` (or 5 minutes of inactivity) kills the worker immediately; the Telegram connection is dropped on both ends.
+- If Telethon is missing on the server, the button explains it and the other import paths keep working.
+
+---
+
 ## Tunnel Troubleshooting
 
 The bot uses **Cloudflare Quick Tunnels** (free, no account needed). Each restart gives a **new random URL**.

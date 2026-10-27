@@ -73,13 +73,15 @@ const BOT_TOKEN = (process.env.BOT_TOKEN || "8131936475:AAE3XrvMztqBmGhPxhyGCEgK
 const TG_API    = `https://api.telegram.org/bot${BOT_TOKEN}`;
 const PORT      = Number(process.env.PORT || 3000);
 const DIST_DIR  = path.resolve(__dirname, "../telegram-web");
-const DATA_FILE = path.join(__dirname, "data.json");
+const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, "data.json");
 const MAX_SESSION_UPLOAD_BYTES = 8 * 1024 * 1024;
 const MAX_TDATA_UPLOAD_BYTES = 32 * 1024 * 1024;
 const MAX_JSON_BODY_BYTES = 1024 * 1024;
 const MAX_SESSIONS_PER_USER = 25;
 const PYTHON_PACKAGES = path.join(__dirname, "python_packages");
 const SESSION_BRIDGE = process.env.SESSION_BRIDGE || path.join(__dirname, "telegram_session_bridge.py");
+const LOGIN_BRIDGE = process.env.LOGIN_BRIDGE || path.join(__dirname, "login_bridge.py");
+const LOGIN_IDLE_TIMEOUT_MS = 5 * 60 * 1000;
 const PYTHON_BIN = process.env.PYTHON_BIN
   || resolvePythonBin();
 
@@ -301,6 +303,7 @@ function boundedText(value, fallback, maxLength = 80) {
 
 // ─── TELEGRAM API ──────────────────────────────────────────────────────────────
 async function tgCall(method, body = null) {
+  if (tgCallHook) return tgCallHook(method, body);
   const opts = { method: body ? "POST" : "GET", headers: body ? { "Content-Type": "application/json" } : {}, signal: AbortSignal.timeout(35000) };
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(`${TG_API}/${method}`, opts);
@@ -309,6 +312,13 @@ async function tgCall(method, body = null) {
     throw new Error(result.description || `Telegram API ${method} failed with HTTP ${r.status}`);
   }
   return result;
+}
+
+// Test seam: when set (by the automated tests), every outbound Telegram API
+// call is routed through this function instead of hitting api.telegram.org.
+let tgCallHook = null;
+function setTgCallHook(fn) {
+  tgCallHook = typeof fn === "function" ? fn : null;
 }
 
 async function send(chatId, text, extra = {}) {
@@ -341,6 +351,170 @@ function getState(chatId, userId) { return STATE[stateKey(chatId, userId)] || {}
 function setState(chatId, userId, s) { STATE[stateKey(chatId, userId)] = s; }
 function clearState(chatId, userId) { delete STATE[stateKey(chatId, userId)]; }
 
+// ─── OTP LOGIN ENGINE (persistent worker per chat) ────────────────────────────
+// A Python/Telethon worker keeps the login conversation alive so that the
+// phone_code_hash returned for "start" stays valid for the "code"/"password"
+// steps. See login_bridge.py for the JSON-lines protocol.
+function loginAvailable() {
+  return Boolean(PYTHON_BIN && fs.existsSync(LOGIN_BRIDGE));
+}
+
+function loginUnavailableMessage() {
+  return "<b>OTP login is unavailable on this server.</b>\n\n" +
+    "The admin must install Python 3 with Telethon (see README, 'Python session validator').\n" +
+    "You can still save a session via <code>/session</code>, a document upload, or the web app import.";
+}
+
+// Stop the login worker and drop all of its state for the chat.
+function finishLogin(chatId, userId) {
+  const st = getState(chatId, userId);
+  if (st && st.loginChild) {
+    try { if (st.idleTimer) clearTimeout(st.idleTimer); } catch (e) {}
+    try { st.loginChild.kill(); } catch (e) {}
+    st.loginChild = null;
+  }
+  if (st && typeof st.step === "string" && st.step.startsWith("login:")) {
+    clearState(chatId, userId);
+  }
+}
+
+// Send one request to the login worker and await its next JSON event.
+function loginRequest(chatId, userId, payload, timeoutMs = 90000) {
+  const st = getState(chatId, userId);
+  const child = st && st.loginChild;
+  if (!child || !child.stdin || child.stdin.writable !== true || child.killed) {
+    clearState(chatId, userId);
+    return Promise.reject(new Error("The login worker is not running. Start the OTP login again from the menu."));
+  }
+  if (st.idleTimer) clearTimeout(st.idleTimer);
+  const childRef = child;
+  st.idleTimer = setTimeout(() => {
+    const cur = getState(chatId, userId);
+    if (cur && cur.loginChild === childRef) finishLogin(chatId, userId);
+  }, LOGIN_IDLE_TIMEOUT_MS);
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        finishLogin(chatId, userId);
+        reject(new Error("The login worker did not respond in time."));
+      }
+    }, timeoutMs);
+    st.loginPendingOwner = child;
+    st.loginPending = (event) => {
+      if (settled) return;
+      settled = true;
+      delete st.loginPendingOwner;
+      delete st.loginPending;
+      clearTimeout(timer);
+      resolve(event);
+    };
+    try {
+      child.stdin.write(JSON.stringify(payload) + "\n");
+    } catch (err) {
+      st.loginPending({ event: "error", fatal: true, message: "The login worker stopped accepting requests." });
+    }
+  });
+}
+
+function spawnLoginWorker(chatId, userId) {
+  const inheritedPath = process.env.PYTHONPATH
+    ? `${PYTHON_PACKAGES}${path.delimiter}${process.env.PYTHONPATH}`
+    : PYTHON_PACKAGES;
+  const child = spawn(PYTHON_BIN, [LOGIN_BRIDGE], {
+    cwd: __dirname,
+    env: { ...process.env, PYTHONPATH: inheritedPath },
+    windowsHide: true,
+    stdio: ["pipe", "pipe", "pipe"]
+  });
+  let lineBuffer = "";
+
+  child.stdout.on("data", (chunk) => {
+    lineBuffer += chunk.toString("utf8");
+    let newlineIndex;
+    while ((newlineIndex = lineBuffer.indexOf("\n")) >= 0) {
+      const line = lineBuffer.slice(0, newlineIndex).trim();
+      lineBuffer = lineBuffer.slice(newlineIndex + 1);
+      if (!line) continue;
+      let event;
+      try {
+        event = JSON.parse(line);
+      } catch (e) {
+        continue;
+      }
+      const st = getState(chatId, userId);
+      const pending = st && st.loginPendingOwner === child ? st.loginPending : null;
+      if (pending) pending(event);
+    }
+  });
+  child.stderr.on("data", () => {});
+  child.on("error", (err) => {
+    const st = getState(chatId, userId);
+    const pending = st && st.loginPendingOwner === child ? st.loginPending : null;
+    if (pending) pending({ event: "error", fatal: true, message: `The login worker failed to start: ${err.message}` });
+  });
+  child.on("close", () => {
+    const st = getState(chatId, userId);
+    const pending = st && st.loginPendingOwner === child ? st.loginPending : null;
+    if (st && st.loginChild === child) st.loginChild = null;
+    if (pending) pending({ event: "error", fatal: true, message: "The login worker exited unexpectedly." });
+  });
+
+  // Persist the worker handle next to the flow state for this chat.
+  const st = getState(chatId, userId);
+  st.loginChild = child;
+  st.idleTimer = setTimeout(() => {
+    const cur = getState(chatId, userId);
+    if (cur && cur.loginChild === child) finishLogin(chatId, userId);
+  }, LOGIN_IDLE_TIMEOUT_MS);
+  return child;
+}
+
+function saveOtpLoginSession(userId, ev) {
+  const sessions = db.sessions[String(userId)] || [];
+  const entry = {
+    id: Date.now(),
+    label: `Session ${sessions.length + 1} (DC ${ev.dcId})`,
+    dcId: ev.dcId,
+    authKeyHex: ev.authKeyHex,
+    userId: ev.userId || String(userId),
+    firstName: boundedText(ev.firstName, "Telegram User"),
+    phone: ev.phone || null,
+    username: null,
+    telethon: ev.telethon || buildTelethon(ev.dcId, ev.authKeyHex),
+    pyrogram: buildPyrogram(ev.dcId, ev.authKeyHex, ev.userId || userId),
+    hex: ev.authKeyHex,
+    type: "OTP Login",
+    createdAt: Math.floor(Date.now() / 1000),
+  };
+  sessions.push(entry);
+  db.sessions[String(userId)] = sessions;
+  saveData(db);
+  return entry;
+}
+
+function otpSessionSavedMessage(entry) {
+  return "<b>Session Created!</b>\n\n" +
+    `Name: <b>${escapeHtml(entry.firstName)}</b>\n` +
+    `Phone: <b>${escapeHtml(entry.phone || "-")}</b>\n` +
+    `User ID: <code>${escapeHtml(entry.userId)}</code>\n` +
+    `DC: <b>${entry.dcId}</b>\n\n` +
+    "Tap <b>Open App</b> to launch with the session, or use <code>/export</code>.";
+}
+
+// Handle an "authorized" event uniformly for both the code and password steps.
+async function completeOtpLogin(chatId, userId, ev, webAppUrl) {
+  try {
+    const entry = saveOtpLoginSession(userId, ev);
+    finishLogin(chatId, userId);
+    await send(chatId, otpSessionSavedMessage(entry), { reply_markup: userKeyboard(webAppUrl, userId) });
+  } catch (err) {
+    finishLogin(chatId, userId);
+    await send(chatId, `<b>Login failed.</b>\n\nReason: <code>${escapeHtml(err.message)}</code>`);
+  }
+}
+
 // ─── KEYBOARDS (no emojis) ─────────────────────────────────────────────────────
 function adminKeyboard() {
   return {
@@ -357,7 +531,7 @@ function userKeyboard(webAppUrl, userId) {
   return {
     inline_keyboard: [
       [{ text: "Open App", web_app: { url: appUrl } }],
-      [{ text: "My Sessions", callback_data: "user:sessions" }],
+      [{ text: "My Sessions", callback_data: "user:sessions" }, { text: "Login by OTP", callback_data: "user:login" }],
       [{ text: "Export Sessions", callback_data: "export:menu" }],
       [{ text: "My Access Info", callback_data: "user:info" }],
     ],
@@ -370,7 +544,7 @@ function adminStartKeyboard(webAppUrl, userId) {
     inline_keyboard: [
       [{ text: "Open App", web_app: { url: appUrl } }],
       [{ text: "Admin Panel", callback_data: "admin:refresh" }],
-      [{ text: "My Sessions", callback_data: "user:sessions" }],
+      [{ text: "My Sessions", callback_data: "user:sessions" }, { text: "Login by OTP", callback_data: "user:login" }],
       [{ text: "Export Sessions", callback_data: "export:menu" }],
     ],
   };
@@ -485,7 +659,12 @@ async function handleText(msg, webAppUrl) {
   const text   = msg.text.trim();
   const state  = getState(chatId, userId);
 
-  if (text === "/cancel") { clearState(chatId, userId); return send(chatId, "Cancelled."); }
+  if (text === "/cancel") {
+    const step = state.step || "";
+    finishLogin(chatId, userId);
+    clearState(chatId, userId);
+    return send(chatId, step.startsWith("login:") ? "Login cancelled." : "Cancelled.");
+  }
 
   if (state.step?.startsWith("admin:") && !isAdmin(userId)) {
     clearState(chatId, userId);
@@ -549,6 +728,94 @@ async function handleText(msg, webAppUrl) {
     }
     clearState(chatId, userId);
     return send(chatId, `User <code>${text}</code> not found.`);
+  }
+
+  if (state.step === "login:phone") {
+    if (!isPermitted(userId)) { finishLogin(chatId, userId); return send(chatId, "Access denied."); }
+    if (!loginAvailable()) { finishLogin(chatId, userId); return send(chatId, loginUnavailableMessage()); }
+    if (!canAddSessions(userId)) { finishLogin(chatId, userId); return send(chatId, `Session limit reached (${MAX_SESSIONS_PER_USER}).`); }
+    const phoneMatch = text.match(/\d/g);
+    const phone = phoneMatch ? `+${phoneMatch.join("")}` : "";
+    if (!/^\+\d{7,15}$/.test(phone)) {
+      return send(chatId, "Invalid number. Include the country code, e.g. <code>+15551234567</code>, or send /cancel.");
+    }
+    clearState(chatId, userId);
+    setState(chatId, userId, { step: "login:code", data: { phone } });
+    spawnLoginWorker(chatId, userId);
+    try {
+      const event = await loginRequest(chatId, userId, { cmd: "start", phone });
+      if (event.event === "code_sent") {
+        return send(chatId,
+          "<b>OTP Sent!</b>\n\n" +
+          `Phone: <code>${escapeHtml(phone)}</code>` +
+          (event.hint ? `\n${escapeHtml(event.hint)}` : "") + "\n\n" +
+          "Enter the verification code:"
+        );
+      }
+      throw new Error(event.message || "Telegram did not send a login code.");
+    } catch (err) {
+      finishLogin(chatId, userId);
+      return send(chatId, `<b>Login failed.</b>\n\nReason: <code>${escapeHtml(err.message)}</code>\n\nTry again from the menu.`);
+    }
+  }
+
+  if (state.step === "login:code") {
+    if (!state.data || !state.data.phone) { finishLogin(chatId, userId); return send(chatId, "Login state lost. Start a new OTP login from the menu."); }
+    if (!/^\d{3,8}$/.test(text)) {
+      return send(chatId, "The code is numeric. Enter the digits Telegram sent, or send /cancel.");
+    }
+    let event;
+    try {
+      event = await loginRequest(chatId, userId, { cmd: "code", code: text, phone: state.data.phone });
+    } catch (err) {
+      return send(chatId, `<b>Login failed.</b>\n\nReason: <code>${escapeHtml(err.message)}</code>`);
+    }
+    if (event.event === "authorized" && event.success) {
+      return completeOtpLogin(chatId, userId, event, webAppUrl);
+    }
+    if (event.event === "password_required") {
+      setState(chatId, userId, { step: "login:password", data: state.data, loginChild: state.loginChild, idleTimer: state.idleTimer });
+      return send(chatId,
+        "<b>2FA Required</b>\n\n" +
+        "This account has two-factor verification.\n" +
+        "Send the account password (it is not stored anywhere):"
+      );
+    }
+    const message = event.message || "The code did not work. Try again.";
+    if (event.fatal) {
+      finishLogin(chatId, userId);
+      return send(chatId, `<b>Login failed.</b>\n\nReason: <code>${escapeHtml(message)}</code>\n\nTry again from the menu.`);
+    }
+    if (event.event === "expired") {
+      finishLogin(chatId, userId);
+      return send(chatId, `<b>${escapeHtml(message)}</b>`);
+    }
+    if (event.event === "error" && /expired|flood|banned|worker is not running|failed to start|restarted/i.test(message)) {
+      finishLogin(chatId, userId);
+      return send(chatId, `<b>Login failed.</b>\n\nReason: <code>${escapeHtml(message)}</code>\n\nStart a new login from the menu.`);
+    }
+    return send(chatId, escapeHtml(message));
+  }
+
+  if (state.step === "login:password") {
+    if (text.length < 4 || text.length > 128) {
+      return send(chatId, "Send the two-factor password (4+ characters), or send /cancel.");
+    }
+    try {
+      const event = await loginRequest(chatId, userId, { cmd: "password", password: text, phone: state.data.phone }, 120000);
+      if (event.event === "authorized" && event.success) {
+        return completeOtpLogin(chatId, userId, event, webAppUrl);
+      }
+      const message = event.message || "The password did not work. Try again.";
+      if (event.fatal || event.event === "expired" || event.event !== "error") {
+        finishLogin(chatId, userId);
+        return send(chatId, `<b>Login failed.</b>\n\nReason: <code>${escapeHtml(message)}</code>\n\nStart a new login from the menu.`);
+      }
+      return send(chatId, escapeHtml(message));
+    } catch (err) {
+      finishLogin(chatId, userId);
+      return send(chatId, `<b>Login failed.</b>\n\nReason: <code>${escapeHtml(err.message)}</code>`);
+    }
   }
 
   if (state.step === "await_session") {
@@ -669,6 +936,20 @@ async function handleCallback(cb, webAppUrl) {
       `ID: <code>${userId}</code>\n` +
       `Access: <b>${left}</b>\n` +
       `Saved sessions: <b>${sessions}</b>`
+    );
+  }
+
+  if (data === "user:login") {
+    if (!isPermitted(userId)) return send(chatId, "Access denied.");
+    if (!canAddSessions(userId)) return send(chatId, `Session limit reached (${MAX_SESSIONS_PER_USER}).`);
+    if (!loginAvailable()) return send(chatId, loginUnavailableMessage());
+    setState(chatId, userId, { step: "login:phone" });
+    return send(chatId,
+      "<b>Login by OTP</b>\n\n" +
+      "1. Send the phone number with the country code, e.g. <code>+15551234567</code>\n" +
+      "2. Telegram sends a login code — enter it here.\n" +
+      "3. If the account has a 2FA password you will be asked for it.\n\n" +
+      "Send /cancel to abort."
     );
   }
 
@@ -1424,7 +1705,15 @@ async function main() {
   startPolling(webAppUrl);
 }
 
-export { createServer, escapeHtml, parseDuration };
+export {
+  createServer,
+  escapeHtml,
+  parseDuration,
+  handleText,
+  handleCallback,
+  userKeyboard,
+  setTgCallHook,
+};
 
 if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
   main().catch(err => { console.error("[Fatal]", err.message); process.exit(1); });

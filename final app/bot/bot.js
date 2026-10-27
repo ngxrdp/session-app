@@ -111,12 +111,36 @@ function resolvePythonBin() {
   return null;
 }
 
+const VERIFY_UNAVAILABLE_ERROR = "Session verification with Telegram is unavailable on this server: a Python interpreter with the Telethon package is missing. The bot admin must install Python 3 and Telethon (see README, 'Python session validator').";
+let telethonAvailabilityLogged = false;
+function logTelethonUnavailable() {
+  if (telethonAvailabilityLogged) return;
+  telethonAvailabilityLogged = true;
+  console.error("[Session] Telethon unavailable — uploads are structurally validated only. Install Python 3 + telethon on this server for live Telegram verification.");
+}
+// Accepts a structurally valid session when live verification is impossible.
+function unverifiedFallback(acc, dcId, keyHex) {
+  const dc = Number.isInteger(dcId) ? dcId : (acc && acc.dcId);
+  const meta = acc || {};
+  return {
+    success: true,
+    unverified: true,
+    dcId: dc,
+    authKeyHex: keyHex,
+    userId: meta.userId,
+    firstName: meta.firstName,
+    phone: meta.phone,
+    telethon: buildTelethon(dc, keyHex)
+  };
+}
+function isTelethonUnavailable(err) {
+  return /verification with Telegram is unavailable|Telethon package is missing/i.test((err && err.message) || "");
+}
+
 function verifySessionWithTelegram({ buffer, session }) {
   return new Promise((resolve, reject) => {
     if (!PYTHON_BIN || !fs.existsSync(SESSION_BRIDGE)) {
-      reject(new Error(
-        "Session verification with Telegram is unavailable on this server: a Python interpreter with the Telethon package is missing. The bot admin must install Python 3 and Telethon (see README, 'Python session validator')."
-      ));
+      reject(new Error(VERIFY_UNAVAILABLE_ERROR));
       return;
     }
 
@@ -172,7 +196,13 @@ async function verifyParsedAccount(acc) {
   if (!Number.isInteger(acc.dcId) || acc.dcId < 1 || acc.dcId > 5 || !/^[0-9a-f]{512}$/.test(keyHex)) {
     return { success: false, error: "Session is missing a valid data center or auth key." };
   }
-  return verifySessionWithTelegram({ session: buildTelethon(acc.dcId, keyHex) });
+  try {
+    return await verifySessionWithTelegram({ session: buildTelethon(acc.dcId, keyHex) });
+  } catch (err) {
+    if (!isTelethonUnavailable(err)) throw err;
+    logTelethonUnavailable();
+    return unverifiedFallback(acc, acc.dcId, keyHex);
+  }
 }
 
 // ─── ADMIN IDs ─────────────────────────────────────────────────────────────────
@@ -1097,6 +1127,7 @@ function createServer() {
               userId: verified.userId,
               firstName: verified.firstName || "Telegram User",
               type: acc.type || "Session File",
+              unverified: verified.unverified === true,
               telethon: verified.telethon,
               pyrogram: buildPyrogram(verified.dcId, verified.authKeyHex, verified.userId)
             }));
@@ -1143,7 +1174,14 @@ function createServer() {
               res.writeHead(400, { "Content-Type": "application/json" });
               return res.end(JSON.stringify({ success: false, error: "Session is missing a valid data center or auth key." }));
             }
-            const verified = await verifySessionWithTelegram({ session: buildTelethon(dcId, keyHex) });
+            let verified;
+            try {
+              verified = await verifySessionWithTelegram({ session: buildTelethon(dcId, keyHex) });
+            } catch (verifyErr) {
+              if (!isTelethonUnavailable(verifyErr)) throw verifyErr;
+              logTelethonUnavailable();
+              verified = unverifiedFallback(acc, dcId, keyHex);
+            }
             if (!verified.success) {
               res.writeHead(400, { "Content-Type": "application/json" });
               return res.end(JSON.stringify({ success: false, error: verified.error || "Telegram rejected this session." }));
@@ -1156,6 +1194,7 @@ function createServer() {
               userId: verified.userId,
               firstName: verified.firstName || "Telegram User",
               type: acc.type,
+              unverified: verified.unverified === true,
               telethon: verified.telethon,
               pyrogram: buildPyrogram(verified.dcId, verified.authKeyHex, verified.userId)
             }));

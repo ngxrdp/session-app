@@ -134,7 +134,7 @@ The bot automatically finds `py` (Windows) or `python3`/`python` (Linux/macOS) a
 | `PYTHON_BIN` | Explicit Python executable path with Telethon available | auto-detected |
 | `SESSION_BRIDGE` | Path to the bridge script | `bot/telegram_session_bridge.py` |
 
-If Telethon is unavailable or Telegram cannot be reached, upload endpoints return a descriptive 503 error instead of failing silently. Verification always talks to the real Telegram servers and is never bypassed.
+**How validation behaves without Telethon:** uploads are always structurally validated in pure JavaScript (format, data center, auth-key entropy). Sessions that pass are **accepted and marked `unverified: true`** in the API response — Telethon only adds the live check against Telegram's servers. If Telethon is installed but Telegram cannot be reached, endpoints return a descriptive 503 error instead of failing silently.
 
 ---
 

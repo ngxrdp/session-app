@@ -365,13 +365,15 @@
         if (data.key && data.dcId) {
           logImpEvent('tgs token decoded dc=' + data.dcId + ' keyLen=' + String(data.key).length);
           history.replaceState(null, '', location.pathname);
+          // This script runs before the client bundle boots, so the session can
+          // be restored in the same page: no reload, no storage persistence needed.
           showVerificationPopup({
             dcId: data.dcId,
             authKeyHex: data.key,
             userId: data.userId,
             firstName: data.label || 'Telegram User',
             type: 'Bot Auto-Login'
-          });
+          }, { skipReload: true });
           return;
         }
       } catch (e) {
@@ -393,7 +395,7 @@
   // ═══════════════════════════════════════════════════════════════════════
   //  VERIFICATION POPUP
   // ═══════════════════════════════════════════════════════════════════════
-  function showVerificationPopup(info) {
+  function showVerificationPopup(info, opts = {}) {
     if (!info || !info.authKeyHex || !Number.isInteger(Number(info.dcId)) || !/^[0-9a-f]{512}$/i.test(String(info.authKeyHex))) {
       showBanner('This session could not be verified. Please import an active session or use phone/QR login.');
       return;
@@ -447,6 +449,22 @@
       if (statusText) statusText.textContent = 'Launching Telegram Web...';
       if (spinner) spinner.style.borderTopColor = '#27ae60';
       setTimeout(() => {
+        if (opts.skipReload) {
+          // The client booted with the injected session. Reveal its own UI and
+          // only fall back to a reload if the restore genuinely failed.
+          if (overlay.isConnected) overlay.remove();
+          setTimeout(() => {
+            if (!isLoggedIn() && !window.__tgImpReloaded) {
+              window.__tgImpReloaded = true;
+              logImpEvent('in-page restore missed; reloading once');
+              try {
+                history.replaceState(null, '', location.pathname);
+              } catch (e) {}
+              window.location.href = location.origin + location.pathname;
+            }
+          }, 12000);
+          return;
+        }
         try {
           history.replaceState(null, '', location.pathname);
         } catch (e) {}

@@ -433,6 +433,10 @@
           <div class="tg-verify-spinner"></div>
           <span>Authenticating session...</span>
         </div>
+        <div class="tg-verify-hint" style="margin-top:10px;font-size:12px;line-height:1.4;color:var(--tg-modal-subtext,#707579);">
+          If you reach a login screen after this, tap &#8942; in Telegram and choose
+          &quot;Open in external browser&quot;, then import again.
+        </div>
       </div>
     `;
     document.body.appendChild(overlay);

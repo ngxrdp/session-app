@@ -860,7 +860,8 @@ async function handleText(msg, webAppUrl) {
       `DC: <b>${entry.dcId}</b>\n` +
       `User ID: <code>${entry.userId}</code>\n` +
       `Label: <b>${escapeHtml(entry.label)}</b>\n\n` +
-      `Use /export to export your sessions, or tap <b>Open App</b> to auto-login.`,
+      `Tap <b>Open App</b> — the web app opens with this account already logged in.\n` +
+      `If Telegram's built-in browser lands on a login screen, open the same link in an external browser (e.g. Chrome).`,
       { reply_markup: userKeyboard(webAppUrl, userId) }
     );
   }
@@ -1182,7 +1183,9 @@ async function startPolling(webAppUrl) {
                         `<b>Session Valid & Saved!</b>\n\n` +
                         `Loaded <b>${accounts.length}</b> session(s) from <code>${escapeHtml(doc.file_name)}</code>.\n` +
                         `Type: <b>${escapeHtml(accounts[0].type)}</b> (DC ${accounts[0].dcId})\n\n` +
-                        `Use /export to export or tap <b>Open App</b> to launch.`,
+                        `Tap <b>Open App</b> — the web app opens with this account already logged in.\n` +
+                        `If Telegram's built-in browser lands on a login screen, open the same link in an external browser (e.g. Chrome) — it always works there.\n\n` +
+                        `Use /export to save a copy of the session.`,
                         { reply_markup: userKeyboard(webAppUrl, userId) }
                       );
                     }

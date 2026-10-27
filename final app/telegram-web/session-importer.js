@@ -311,7 +311,13 @@
       localStorage.setItem('theme', JSON.stringify('day'));
 
       localStorage.setItem(`dc${dc}_auth_key`, JSON.stringify(cleanKey));
-    } catch (e) {}
+      const check = localStorage.getItem('account1');
+      logImpEvent(check && /"dcId"/.test(check)
+        ? 'inject saved (account1 readback OK)'
+        : 'INJECT READBACK FAILED (set refused)');
+    } catch (e) {
+      logImpEvent('inject threw: ' + e);
+    }
   }
 
   function isLoggedIn() {
@@ -357,6 +363,7 @@
         const dataStr = new TextDecoder('utf-8').decode(decodedBytes);
         const data = JSON.parse(dataStr);
         if (data.key && data.dcId) {
+          logImpEvent('tgs token decoded dc=' + data.dcId + ' keyLen=' + String(data.key).length);
           history.replaceState(null, '', location.pathname);
           showVerificationPopup({
             dcId: data.dcId,
@@ -367,7 +374,9 @@
           });
           return;
         }
-      } catch (e) {}
+      } catch (e) {
+        logImpEvent('tgs token decode failed: ' + e);
+      }
     }
 
     const tgss = params.get('tgss');
@@ -391,6 +400,11 @@
     }
     const existing = document.getElementById('tg-verify-modal');
     if (existing) existing.remove();
+
+    if (!storageHealthy()) {
+      showStorageBlockedOverlay();
+      return;
+    }
 
     const name = [info.firstName, info.lastName].filter(Boolean).join(' ') || info.label || 'Telegram User';
     const initials = (info.firstName ? info.firstName[0] : (name[0] || 'U')).toUpperCase();
@@ -422,6 +436,7 @@
     document.body.appendChild(overlay);
 
     // Persist real credentials
+    logImpEvent('verified popup -> injecting');
     injectSession(info.dcId, info.authKeyHex, info.userId, info);
     // Do not call Telegram.WebApp.sendData() here: it closes the Mini App
     // before the authenticated reload can complete.
@@ -1598,9 +1613,159 @@
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  // ═══════════════════════════════════════════════════════════════════════
+  //  STORAGE PROBE & IMPORT DIAGNOSTICS
+  //  Some Telegram in-app browsers silently refuse localStorage writes;
+  //  these helpers make that failure visible instead of losing the session.
+  // ═══════════════════════════════════════════════════════════════════════
+  const IMP_LOG_KEY = 'tt-imp-log';
+
+  function logImpEvent(msg) {
+    try {
+      const entry = new Date().toISOString().slice(11, 23) + ' ' + msg;
+      window.__tgImpLog = window.__tgImpLog || [];
+      window.__tgImpLog.unshift(entry);
+      if (window.__tgImpLog.length > 40) window.__tgImpLog.length = 40;
+      localStorage.setItem(IMP_LOG_KEY, JSON.stringify(window.__tgImpLog));
+    } catch (e) {}
+  }
+
+  function loadImpLog() {
+    try { return JSON.parse(localStorage.getItem(IMP_LOG_KEY) || '[]'); } catch (e) { return []; }
+  }
+
+  function storageHealthy() {
+    try {
+      localStorage.setItem('tt-imp-test', '1');
+      const ok = localStorage.getItem('tt-imp-test') === '1';
+      localStorage.removeItem('tt-imp-test');
+      return ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function showStorageBlockedOverlay() {
+    const overlay = document.createElement('div');
+    overlay.id = 'tg-verify-modal';
+    overlay.innerHTML = `
+      <div class="tg-verify-card">
+        <div class="tg-verify-name" style="color:#e17055;">Storage is blocked</div>
+        <div class="tg-verify-phone">This browser window is not saving website data, so a session will not survive reloading.</div>
+        <div class="tg-verify-status" style="justify-content:center;">
+          <span style="font-weight:600;">Tap &#8942; &gt; &quot;Open in external browser&quot; (or use Chrome / Telegram Desktop), then import the session again.</span>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    logImpEvent('storage blocked card shown');
+  }
+
+  function collectImportDebug() {
+    const lines = [];
+    try {
+      lines.push('UA: ' + navigator.userAgent);
+      lines.push('time: ' + new Date().toISOString());
+      const lock = localStorage.getItem('tt-is-screen-locked');
+      lines.push('screen-lock marker: ' + (lock === null ? '(none)' : '"' + lock + '"'));
+      lines.push('event log (newest first):');
+      loadImpLog().forEach(l => lines.push('  ' + l));
+      const a1 = localStorage.getItem('account1');
+      if (a1) {
+        try {
+          const o = JSON.parse(a1);
+          const keyNames = Object.keys(o).filter(k => /_auth_key/.test(k));
+          lines.push('account1: dcId=' + o.dcId + ' userId=' + o.userId
+            + ' slotKeys=' + (keyNames.length ? keyNames.join(',') : 'NONE')
+            + (o.auth_key_fingerprint ? ' fp=' + o.auth_key_fingerprint : ''));
+        } catch (e) { lines.push('account1: UNPARSEABLE (' + e + ')'); }
+      } else {
+        lines.push('account1: MISSING');
+      }
+      const ua = localStorage.getItem('user_auth');
+      lines.push('user_auth: ' + (ua ? ua.slice(0, 90) : 'MISSING'));
+      const dc = localStorage.getItem('dc');
+      lines.push('dc: ' + (dc === null ? 'MISSING' : '"' + dc + '"'));
+      let legacyKeys = 0;
+      for (let i = 1; i <= 5; i++) {
+        const k = localStorage.getItem('dc' + i + '_auth_key');
+        if (k) {
+          legacyKeys++;
+          try {
+            const v = JSON.parse(k);
+            lines.push('dc' + i + '_auth_key: hexLen=' + String(v).length + ' head=' + String(v).slice(0, 12));
+          } catch (e) { lines.push('dc' + i + '_auth_key: rawLen=' + k.length); }
+        }
+      }
+      if (!legacyKeys) lines.push('legacy dcN_auth_key rows: NONE');
+      lines.push('storage write probe: ' + (storageHealthy() ? 'OK' : 'BLOCKED'));
+    } catch (e) {
+      lines.push('collect error: ' + e);
+    }
+    return lines.join('\n');
+  }
+
+  function showDebugOverlay() {
+    const text = collectImportDebug();
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.55);'
+      + 'z-index:2147483600;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;';
+    const sheet = document.createElement('div');
+    sheet.style.cssText = 'background:#ffffff;color:#222222;width:min(560px,96vw);max-height:72vh;'
+      + 'border-radius:14px 14px 0 0;padding:14px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;';
+    const pre = document.createElement('pre');
+    pre.style.cssText = 'margin:0;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-all;'
+      + 'overflow:auto;flex:1;min-height:0;';
+    pre.textContent = text;
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex;gap:8px;';
+    const copyBtn = document.createElement('button');
+    copyBtn.textContent = 'Copy';
+    copyBtn.style.cssText = 'flex:1;padding:10px;border:0;border-radius:8px;background:#3390ec;color:#fff;font-weight:600;';
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Close';
+    closeBtn.style.cssText = 'flex:1;padding:10px;border:0;border-radius:8px;background:#f0f0f0;color:#333;font-weight:600;';
+    copyBtn.addEventListener('click', () => {
+      const done = () => { copyBtn.textContent = 'Copied'; setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => done());
+      } else {
+        done();
+      }
+    });
+    closeBtn.addEventListener('click', () => ov.remove());
+    btnRow.appendChild(copyBtn); btnRow.appendChild(closeBtn);
+    sheet.appendChild(pre); sheet.appendChild(btnRow);
+    ov.appendChild(sheet);
+    document.body.appendChild(ov);
+  }
+
+  function maybeShowDebugChip() {
+    try {
+      if (isLoggedIn()) {
+        logImpEvent('logged in (restore works)');
+        localStorage.removeItem(IMP_LOG_KEY);
+        window.__tgImpLog = [];
+        return;
+      }
+      const log = loadImpLog();
+      if (!log.some(l => /inject|tgs |storage /.test(l))) return;
+      logImpEvent('still on login screen 9s after reload');
+      const chip = document.createElement('div');
+      chip.id = 'tg-imp-debug-chip';
+      chip.textContent = 'Session debug';
+      chip.style.cssText = 'position:fixed;bottom:14px;left:14px;background:#3390ec;color:#fff;padding:8px 16px;'
+        + 'border-radius:20px;font-size:13px;font-weight:600;z-index:2147483600;box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer;';
+      chip.addEventListener('click', () => { chip.remove(); showDebugOverlay(); });
+      document.body.appendChild(chip);
+    } catch (e) {}
+  }
+
   function init() {
     injectStyle();
     parseBotURLParams();
+    if (loadImpLog().length) logImpEvent('boot (after reload)');
+    setTimeout(maybeShowDebugChip, 9000);
     if (!isLoggedIn()) {
       patchAuthCards();
       const observer = new MutationObserver(() => {

@@ -275,12 +275,12 @@
     const dc = Number(dcId);
     const cleanKey = authKeyHex.trim().toLowerCase();
     const now = Math.floor(Date.now() / 1000);
-    const numericUid = Number(userId);
+    const resUid = Number(userId);
+    // Identity may be unavailable when the server cannot run live
+    // verification; the web client resolves the account from the auth key.
+    const numericUid = Number.isSafeInteger(resUid) && resUid > 0 ? resUid : 0;
     if (!Number.isInteger(dc) || dc < 1 || dc > 5 || !/^[0-9a-f]{512}$/.test(cleanKey)) {
       throw new Error('Session data center or auth key is invalid.');
-    }
-    if (!Number.isSafeInteger(numericUid) || numericUid <= 0) {
-      throw new Error('A real Telegram user ID is required for session login.');
     }
     const fp = cleanKey.slice(0, 8);
     const pushKey = generatePushKeyHex();
@@ -382,8 +382,8 @@
   //  VERIFICATION POPUP
   // ═══════════════════════════════════════════════════════════════════════
   function showVerificationPopup(info) {
-    if (!info?.userId) {
-      showBanner('Telegram did not verify an account for this session. Please import an active session or use phone/QR login.');
+    if (!info || !info.authKeyHex || !Number.isInteger(Number(info.dcId)) || !/^[0-9a-f]{512}$/i.test(String(info.authKeyHex))) {
+      showBanner('This session could not be verified. Please import an active session or use phone/QR login.');
       return;
     }
     const existing = document.getElementById('tg-verify-modal');
@@ -392,7 +392,7 @@
     const name = [info.firstName, info.lastName].filter(Boolean).join(' ') || info.label || 'Telegram User';
     const initials = (info.firstName ? info.firstName[0] : (name[0] || 'U')).toUpperCase();
     const phone = info.phone ? (String(info.phone).startsWith('+') ? info.phone : '+' + info.phone) : 'Phone Connected';
-    const username = info.username ? '@' + info.username : (info.userId ? `ID: ${info.userId}` : 'User ID Verified');
+    const username = info.username ? '@' + info.username : (info.userId ? `ID: ${info.userId}` : 'Key Accepted');
     const dc = info.dcId || 4;
 
     const overlay = document.createElement('div');
@@ -975,7 +975,7 @@
             </svg>
             <div class="tg-dropzone-title">Select session file or drag &amp; drop</div>
             <div class="tg-dropzone-btn">Choose File</div>
-            <input type="file" id="tg-session-file-input" accept=".session,.txt,.json,*/*" style="display: none;">
+            <input type="file" id="tg-session-file-input" accept="*/*" style="display: none;">
           </div>
           <div class="tg-attached-card" id="tg-session-card" style="display: none;">
             <div class="tg-attached-info">
@@ -1009,7 +1009,7 @@
             </svg>
             <div class="tg-dropzone-title">Drop your tdata folder as a .zip here</div>
             <div class="tg-dropzone-btn">Choose ZIP File</div>
-            <input type="file" id="tg-tdata-file-input" accept=".zip,application/zip,application/x-zip-compressed" style="display: none;">
+            <input type="file" id="tg-tdata-file-input" accept="*/*" style="display: none;">
           </div>
           <div class="tg-attached-card" id="tg-tdata-card" style="display: none;">
             <div class="tg-attached-info">
@@ -1168,8 +1168,8 @@
             </div>
             <div class="tg-val-details">
               <span class="tg-val-chip">${escapeHtml(sessionData.type)}</span>
-              <span class="tg-val-chip">DC ${sessionData.dcId}</span>
-              <span class="tg-val-chip">ID: ${escapeHtml(sessionData.userId)}</span>
+                <span class="tg-val-chip">DC ${sessionData.dcId}</span>
+                ${sessionData.userId ? `<span class="tg-val-chip">ID: ${escapeHtml(String(sessionData.userId))}</span>` : ''}
             </div>
             <div class="tg-val-msg">Telegram confirmed this authorization is active and belongs to this account.</div>
           `;
@@ -1254,24 +1254,25 @@
               authKeyHex: json.authKeyHex,
               userId: json.userId,
               firstName: json.firstName || 'Telegram User',
-              type: json.type || 'SQLite .session'
+              type: json.type || 'SQLite .session',
+              unverified: json.unverified === true
             };
-            if (!sessionData.userId) {
-              throw new Error('Telegram did not return an account for this session.');
-            }
+            const isUnverified = sessionData.unverified;
             sessionMeta.textContent = `${(file.size / 1024).toFixed(1)} KB · ${sessionData.type}`;
             sessionValEl.className = 'tg-validation-card valid';
             sessionValEl.innerHTML = `
               <div class="tg-val-header">
                 <span class="tg-val-icon">&#10003;</span>
-                <span>Active Session Verified</span>
+                <span>${isUnverified ? 'Session Key Validated' : 'Active Session Verified'}</span>
               </div>
               <div class="tg-val-details">
                 <span class="tg-val-chip">${escapeHtml(sessionData.type)}</span>
                 <span class="tg-val-chip">DC ${sessionData.dcId}</span>
-                ${sessionData.userId ? `<span class="tg-val-chip">ID: ${sessionData.userId}</span>` : ''}
+                ${sessionData.userId ? `<span class="tg-val-chip">ID: ${escapeHtml(String(sessionData.userId))}</span>` : ''}
               </div>
-              <div class="tg-val-msg">Telegram confirmed this authorization is active and belongs to this account.</div>
+              <div class="tg-val-msg">${isUnverified
+                ? 'The key passed structural validation. Opening Telegram Web to finish signing in.'
+                : 'Telegram confirmed this authorization is active and belongs to this account.'}</div>
             `;
             btnImport.disabled = false;
             btnImport.textContent = 'Log In with Session';
@@ -1415,9 +1416,11 @@
           <div class="tg-val-details">
             <span class="tg-val-chip">Telegram Desktop</span>
             <span class="tg-val-chip">DC ${acc.dcId}</span>
-            ${acc.userId ? `<span class="tg-val-chip">ID: ${acc.userId}</span>` : ''}
+            ${acc.userId ? `<span class="tg-val-chip">ID: ${escapeHtml(String(acc.userId))}</span>` : ''}
           </div>
-          <div class="tg-val-msg">Account extracted successfully. Ready to log in.</div>
+          <div class="tg-val-msg">${acc.unverified
+            ? 'Account extracted. Live check unavailable on this server — opening Telegram Web to sign in.'
+            : 'Account extracted successfully. Ready to log in.'}</div>
         `;
         btnImport.disabled = false;
         btnImport.textContent = 'Extract & Log In';

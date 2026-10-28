@@ -3,7 +3,7 @@
 
   // Build marker: shown in the "Session debug" overlay so a stale deployment
   // (cached index.html / old importer) is immediately recognizable.
-  window.__tgImpVersion = '17';
+  window.__tgImpVersion = '18';
 
   // ── Telegram Mini App ready ──────────────────────────────────────────────
   const TgApp = window.Telegram?.WebApp;
@@ -86,6 +86,72 @@
   // is a deferred module that runs afterwards, so replaying here restores
   // the session in the same boot with no reload and no storage persistence.
   const bridgeReplayed = replayBridgedSession();
+
+  // ── Removal trace: identify which code path erases session keys ─────────
+  // The app occasionally clears the restored session before the UI settles.
+  // Wrapping storage removal pre-boot (before the client bundle loads)
+  // records every removal of a session key together with its stack, so the
+  // debug overlay can show exactly who wiped the login.
+  const TRACE_KEY = 'tt-imp-trace';
+
+  function pushTrace(entry) {
+    try {
+      const arr = JSON.parse(sessionStorage.getItem(TRACE_KEY) || '[]');
+      arr.unshift(entry);
+      if (arr.length > 30) arr.length = 30;
+      sessionStorage.setItem(TRACE_KEY, JSON.stringify(arr));
+    } catch (e) {}
+  }
+
+  function captureStack() {
+    try {
+      return String(new Error().stack || '')
+        .split('\n')
+        .slice(1, 6)
+        .map(l => l.trim().replace(/\s*https?:\/\/[^)\s]*/, ''))
+        .join(' <= ');
+    } catch (e) {
+      return '(no stack)';
+    }
+  }
+
+  try {
+    const SESSION_KEY_RE = /^(account\d*|user_auth|dc(\d*(_auth_key|_hash|_server_salt))?|current_account|number_of_accounts|kz_version|auth_key_fingerprint|tt-is-screen-locked|passcode\S*)$/;
+    const origRemoveItem = Storage.prototype.removeItem;
+    Storage.prototype.removeItem = function (key) {
+      const k = String(key);
+      if (SESSION_KEY_RE.test(k)) {
+        pushTrace({ t: new Date().toISOString().slice(11, 23), key: k, stack: captureStack() });
+      }
+      return origRemoveItem.call(this, key);
+    };
+    const origClear = Storage.prototype.clear;
+    Storage.prototype.clear = function () {
+      pushTrace({ t: new Date().toISOString().slice(11, 23), key: '(clear())', stack: captureStack() });
+      return origClear.call(this);
+    };
+  } catch (e) {}
+
+  // Worker → main messages: record authorization/session lifecycle updates
+  // so the overlay shows how the client decided to drop the session.
+  try {
+    window.addEventListener('message', (ev) => {
+      try {
+        const d = ev.data;
+        if (!d || typeof d !== 'object') return;
+        const payload = d.payload && typeof d.payload === 'object' ? d.payload : d;
+        const type = String(payload.type || d.type || '');
+        if (!/(authorization|signOut|resetAll|saveSession|destroy)/i.test(type)) return;
+        let detail = '';
+        if (payload.authorization_state && payload.authorization_state._) {
+          detail = payload.authorization_state._;
+        } else if (payload['@type']) {
+          detail = String(payload['@type']);
+        }
+        pushTrace({ t: new Date().toISOString().slice(11, 23), key: 'wmsg:' + type + (detail ? ':' + detail : ''), stack: '' });
+      } catch (e) {}
+    });
+  } catch (e) {}
 
   // ═══════════════════════════════════════════════════════════════════════
   //  HELPERS & PARSERS
@@ -1792,6 +1858,15 @@
       lines.push('importer build: v' + (window.__tgImpVersion || 'unknown'));
       lines.push('UA: ' + navigator.userAgent);
       lines.push('time: ' + new Date().toISOString());
+      try {
+        const traces = JSON.parse(sessionStorage.getItem('tt-imp-trace') || '[]');
+        lines.push('session-key removal trace (newest first):');
+        if (traces.length) {
+          traces.forEach(t => lines.push('  ' + t.t + ' REMOVE ' + t.key + '\n      ' + t.stack));
+        } else {
+          lines.push('  (none recorded)');
+        }
+      } catch (e) {}
       const lock = localStorage.getItem('tt-is-screen-locked');
       lines.push('screen-lock marker: ' + (lock === null ? '(none)' : '"' + lock + '"'));
       lines.push('event log (newest first):');

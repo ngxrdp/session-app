@@ -1,0 +1,6 @@
+# Python dependencies for the session bridges (login_bridge.py,
+# telegram_session_bridge.py) and live Telegram session verification.
+# Install with:  pip install -r requirements.txt
+telethon==1.45.0
+pyaes==1.6.1
+rsa==4.9.1

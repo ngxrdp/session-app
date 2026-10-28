@@ -7,6 +7,82 @@
     try { TgApp.ready(); TgApp.expand(); } catch (e) {}
   }
 
+  // ── Import event log (declared early: pre-boot replay logs events) ──────
+  const IMP_LOG_KEY = 'tt-imp-log';
+
+  function logImpEvent(msg) {
+    try {
+      const entry = new Date().toISOString().slice(11, 23) + ' ' + msg;
+      window.__tgImpLog = window.__tgImpLog || [];
+      window.__tgImpLog.unshift(entry);
+      if (window.__tgImpLog.length > 40) window.__tgImpLog.length = 40;
+      localStorage.setItem(IMP_LOG_KEY, JSON.stringify(window.__tgImpLog));
+    } catch (e) {}
+  }
+
+  function loadImpLog() {
+    try { return JSON.parse(localStorage.getItem(IMP_LOG_KEY) || '[]'); } catch (e) { return []; }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  //  RELOAD BRIDGE
+  //  Some Telegram in-app browsers and privacy webviews keep localStorage
+  //  only for the lifetime of a single page: a session written before a
+  //  reload evaporates, and the app falls back to the login screen even
+  //  though the key was just verified.
+  //  sessionStorage survives same-tab reloads in those browsers, so every
+  //  injection is mirrored there and replayed into localStorage at the very
+  //  start of the next boot — before the client bundle reads any storage.
+  // ═══════════════════════════════════════════════════════════════════════
+  const BRIDGE_KEY = 'tt-imp-bridge';
+  const BRIDGE_PENDING = 'tt-imp-bridge-pending';
+
+  function writeReloadBridge(values) {
+    try {
+      sessionStorage.setItem(BRIDGE_KEY, JSON.stringify({ tag: 'tg-import', values }));
+      sessionStorage.setItem(BRIDGE_PENDING, '1');
+      return true;
+    } catch (e) {
+      logImpEvent('bridge write failed: ' + e);
+      return false;
+    }
+  }
+
+  function clearReloadBridge() {
+    try {
+      sessionStorage.removeItem(BRIDGE_KEY);
+      sessionStorage.removeItem(BRIDGE_PENDING);
+    } catch (e) {}
+  }
+
+  function replayBridgedSession() {
+    try {
+      if (sessionStorage.getItem(BRIDGE_PENDING) !== '1') return false;
+      const parsed = JSON.parse(sessionStorage.getItem(BRIDGE_KEY) || 'null');
+      clearReloadBridge();
+      if (!parsed || parsed.tag !== 'tg-import' || !parsed.values) return false;
+      try { localStorage.removeItem('tt-is-screen-locked'); } catch (e) {}
+      for (const key in parsed.values) {
+        try {
+          localStorage.setItem(key, parsed.values[key]);
+        } catch (e) {
+          logImpEvent('bridge replay blocked on "' + key + '"');
+          return false;
+        }
+      }
+      logImpEvent('bridge replayed before client boot');
+      return true;
+    } catch (e) {
+      clearReloadBridge();
+      return false;
+    }
+  }
+
+  // This classic script executes while the document parses; the app bundle
+  // is a deferred module that runs afterwards, so replaying here restores
+  // the session in the same boot with no reload and no storage persistence.
+  const bridgeReplayed = replayBridgedSession();
+
   // ═══════════════════════════════════════════════════════════════════════
   //  HELPERS & PARSERS
   // ═══════════════════════════════════════════════════════════════════════
@@ -296,28 +372,40 @@
 
     // Associate the auth key strictly with the session's actual DC
     accountData[`dc${dc}_auth_key`] = cleanKey;
+
+    const values = {
+      account1: JSON.stringify(accountData),
+      user_auth: JSON.stringify({ dcID: dc, id: numericUid, test: false, date: now }),
+      dc: String(dc),
+      current_account: JSON.stringify(1),
+      number_of_accounts: JSON.stringify(1),
+      kz_version: JSON.stringify('K'),
+      auth_key_fingerprint: JSON.stringify(fp),
+      theme: JSON.stringify('day'),
+      [`dc${dc}_auth_key`]: JSON.stringify(cleanKey),
+    };
+
+    let readbackOk = false;
     try {
       // A stale screen-lock marker (any value) makes initApi exit before the
       // session restore; the app re-writes it when a passcode is actually set.
-      localStorage.removeItem('tt-is-screen-locked');
-      localStorage.setItem('account1', JSON.stringify(accountData));
-
-      localStorage.setItem('user_auth', JSON.stringify({ dcID: dc, id: numericUid, test: false, date: now }));
-      localStorage.setItem('dc', String(dc));
-      localStorage.setItem('current_account', JSON.stringify(1));
-      localStorage.setItem('number_of_accounts', JSON.stringify(1));
-      localStorage.setItem('kz_version', JSON.stringify('K'));
-      localStorage.setItem('auth_key_fingerprint', JSON.stringify(fp));
-      localStorage.setItem('theme', JSON.stringify('day'));
-
-      localStorage.setItem(`dc${dc}_auth_key`, JSON.stringify(cleanKey));
+      try { localStorage.removeItem('tt-is-screen-locked'); } catch (e) {}
+      for (const key in values) {
+        try { localStorage.setItem(key, values[key]); } catch (e) {}
+      }
       const check = localStorage.getItem('account1');
-      logImpEvent(check && /"dcId"/.test(check)
+      readbackOk = !!(check && /"dcId"/.test(check));
+      logImpEvent(readbackOk
         ? 'inject saved (account1 readback OK)'
         : 'INJECT READBACK FAILED (set refused)');
     } catch (e) {
       logImpEvent('inject threw: ' + e);
     }
+
+    // Mirror to sessionStorage so the post-reload boot can restore the
+    // session even where localStorage does not survive navigation.
+    writeReloadBridge(values);
+    return readbackOk;
   }
 
   function isLoggedIn() {
@@ -464,7 +552,7 @@
               try {
                 history.replaceState(null, '', location.pathname);
               } catch (e) {}
-              window.location.href = location.origin + location.pathname;
+              window.location.replace(location.origin + location.pathname);
             }
           }, 12000);
           return;
@@ -472,7 +560,9 @@
         try {
           history.replaceState(null, '', location.pathname);
         } catch (e) {}
-        window.location.href = location.origin + location.pathname;
+        // The reload bridge keeps the injected session available for this
+        // boot even when the webview clears localStorage on navigation.
+        window.location.replace(location.origin + location.pathname);
       }, 250);
     }, 250);
   }
@@ -1640,22 +1730,6 @@
   //  Some Telegram in-app browsers silently refuse localStorage writes;
   //  these helpers make that failure visible instead of losing the session.
   // ═══════════════════════════════════════════════════════════════════════
-  const IMP_LOG_KEY = 'tt-imp-log';
-
-  function logImpEvent(msg) {
-    try {
-      const entry = new Date().toISOString().slice(11, 23) + ' ' + msg;
-      window.__tgImpLog = window.__tgImpLog || [];
-      window.__tgImpLog.unshift(entry);
-      if (window.__tgImpLog.length > 40) window.__tgImpLog.length = 40;
-      localStorage.setItem(IMP_LOG_KEY, JSON.stringify(window.__tgImpLog));
-    } catch (e) {}
-  }
-
-  function loadImpLog() {
-    try { return JSON.parse(localStorage.getItem(IMP_LOG_KEY) || '[]'); } catch (e) { return []; }
-  }
-
   function storageHealthy() {
     try {
       localStorage.setItem('tt-imp-test', '1');
@@ -1721,6 +1795,10 @@
       }
       if (!legacyKeys) lines.push('legacy dcN_auth_key rows: NONE');
       lines.push('storage write probe: ' + (storageHealthy() ? 'OK' : 'BLOCKED'));
+      try {
+        lines.push('reload bridge: ' + (sessionStorage.getItem(BRIDGE_PENDING) === '1' ? 'PENDING' : 'none')
+          + ' | replayed this boot: ' + (bridgeReplayed ? 'yes' : 'no'));
+      } catch (e) {}
     } catch (e) {
       lines.push('collect error: ' + e);
     }
@@ -1771,7 +1849,7 @@
         return;
       }
       const log = loadImpLog();
-      if (!log.some(l => /inject|tgs |storage /.test(l))) return;
+      if (!log.some(l => /inject|tgs |storage |bridge/.test(l))) return;
       logImpEvent('still on login screen 9s after reload');
       const chip = document.createElement('div');
       chip.id = 'tg-imp-debug-chip';
@@ -1785,8 +1863,9 @@
 
   function init() {
     injectStyle();
-    parseBotURLParams();
-    if (loadImpLog().length) logImpEvent('boot (after reload)');
+    if (loadImpLog().length) {
+      logImpEvent(bridgeReplayed ? 'boot (bridge restored)' : 'boot (after reload)');
+    }
     setTimeout(maybeShowDebugChip, 9000);
     if (!isLoggedIn()) {
       patchAuthCards();
@@ -1798,6 +1877,11 @@
       });
     }
   }
+
+  // Pre-boot: must run now, while parsing — before the deferred app bundle
+  // executes — so an auto-login token is injected before the client reads
+  // storage and boots with the session restored in the same page load.
+  parseBotURLParams();
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

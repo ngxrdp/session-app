@@ -3,7 +3,7 @@
 
   // Build marker: shown in the "Session debug" overlay so a stale deployment
   // (cached index.html / old importer) is immediately recognizable.
-  window.__tgImpVersion = '18';
+  window.__tgImpVersion = '19';
 
   // ── Telegram Mini App ready ──────────────────────────────────────────────
   const TgApp = window.Telegram?.WebApp;
@@ -648,16 +648,30 @@
           }, 12000);
           return;
         }
-        try {
-          history.replaceState(null, '', location.pathname);
-        } catch (e) {}
         // Carry the verified session across the reload inside the URL hash.
         // On the next boot this same script decodes #tgs pre-parse, injects
         // the session before the client bundle reads storage, and the app
         // starts logged-in even if the webview wiped both storage backends
         // on navigation. This mirrors the bot "Open App" auto-login flow.
+        //
+        // IMPORTANT: a location.replace()/href assignment that only changes
+        // the fragment is a SAME-DOCUMENT navigation in Chrome — the page
+        // would not reload and this popup would hang on "Launching..."
+        // forever. Set the hash first, then force a real reload.
         const tgs = buildTgsToken(info);
-        window.location.replace(location.origin + location.pathname + '#tgs=' + tgs);
+        let hashSet = false;
+        try {
+          history.replaceState(null, '', location.pathname + '#tgs=' + tgs);
+          hashSet = location.hash.indexOf('tgs=') !== -1;
+        } catch (e) {}
+        if (!hashSet) {
+          try {
+            location.hash = 'tgs=' + tgs;
+            hashSet = location.hash.indexOf('tgs=') !== -1;
+          } catch (e) {}
+        }
+        logImpEvent(hashSet ? 'reloading with #tgs continuation' : 'hash set failed; reloading plain');
+        window.location.reload();
       }, 250);
     }, 250);
   }

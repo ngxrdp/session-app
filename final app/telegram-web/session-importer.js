@@ -1,6 +1,10 @@
 (function () {
   'use strict';
 
+  // Build marker: shown in the "Session debug" overlay so a stale deployment
+  // (cached index.html / old importer) is immediately recognizable.
+  window.__tgImpVersion = '17';
+
   // ── Telegram Mini App ready ──────────────────────────────────────────────
   const TgApp = window.Telegram?.WebApp;
   if (TgApp) {
@@ -439,6 +443,27 @@
 
   let botSessions = [];
 
+  // Encode a verified session exactly like the bot does for "Open App"
+  // auto-login: base64url of {dcId, key, label, userId} in the #tgs param.
+  // Used to carry a freshly uploaded session across the post-import reload
+  // in the URL itself, because some webviews drop localStorage AND
+  // sessionStorage on navigation, which would otherwise land on the login
+  // screen even though the key was just verified.
+  function buildTgsToken(info) {
+    const data = {
+      dcId: Number(info.dcId),
+      key: String(info.authKeyHex),
+      label: info.firstName
+        ? info.firstName + ' (DC ' + info.dcId + ')'
+        : 'Session (DC ' + info.dcId + ')',
+      userId: info.userId || null,
+    };
+    const bytes = new TextEncoder().encode(JSON.stringify(data));
+    let bin = '';
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  }
+
   function parseBotURLParams() {
     let hashStr = '';
     try { hashStr = location.hash.slice(1); } catch (e) {}
@@ -560,9 +585,13 @@
         try {
           history.replaceState(null, '', location.pathname);
         } catch (e) {}
-        // The reload bridge keeps the injected session available for this
-        // boot even when the webview clears localStorage on navigation.
-        window.location.replace(location.origin + location.pathname);
+        // Carry the verified session across the reload inside the URL hash.
+        // On the next boot this same script decodes #tgs pre-parse, injects
+        // the session before the client bundle reads storage, and the app
+        // starts logged-in even if the webview wiped both storage backends
+        // on navigation. This mirrors the bot "Open App" auto-login flow.
+        const tgs = buildTgsToken(info);
+        window.location.replace(location.origin + location.pathname + '#tgs=' + tgs);
       }, 250);
     }, 250);
   }
@@ -1760,6 +1789,7 @@
   function collectImportDebug() {
     const lines = [];
     try {
+      lines.push('importer build: v' + (window.__tgImpVersion || 'unknown'));
       lines.push('UA: ' + navigator.userAgent);
       lines.push('time: ' + new Date().toISOString());
       const lock = localStorage.getItem('tt-is-screen-locked');
@@ -1881,6 +1911,8 @@
   // Pre-boot: must run now, while parsing — before the deferred app bundle
   // executes — so an auto-login token is injected before the client reads
   // storage and boots with the session restored in the same page load.
+  // injectStyle first so the pre-boot verification popup is styled at once.
+  injectStyle();
   parseBotURLParams();
 
   if (document.readyState === 'loading') {

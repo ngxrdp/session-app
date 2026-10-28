@@ -181,7 +181,14 @@ function verifySessionWithTelegram({ buffer, session }) {
         if (code !== 0 && !result.error) throw new Error("Python session validator failed.");
         finish(resolve, result);
       } catch (err) {
-        console.error("[Session] Python validator failed:", stderr.trim() || err.message);
+        const tail = stderr.trim();
+        console.error("[Session] Python validator failed:", tail || err.message);
+        // A python without Telethon must degrade to the unverified path,
+        // not surface as a generic failure to the user.
+        if (/No module named ['\"]?telethon|ModuleNotFoundError/i.test(tail)) {
+          finish(reject, new Error(VERIFY_UNAVAILABLE_ERROR));
+          return;
+        }
         finish(reject, new Error("Could not validate this session with Telegram."));
       }
     });

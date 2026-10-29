@@ -3,7 +3,7 @@
 
   // Build marker: shown in the "Session debug" overlay so a stale deployment
   // (cached index.html / old importer) is immediately recognizable.
-  window.__tgImpVersion = '20';
+  window.__tgImpVersion = '21';
 
   // ── Telegram Mini App ready ──────────────────────────────────────────────
   const TgApp = window.Telegram?.WebApp;
@@ -2014,6 +2014,23 @@
     if (isLoggedIn()) {
       // Restore succeeded: reset the boot-retry budget.
       try { sessionStorage.removeItem('tt-imp-retries'); } catch (e) {}
+    }
+    // Runtime proof of which app bundles the device is actually serving:
+    // the worker must contain the console-broadcast shim, the main bundle
+    // must contain the no-signOut-on-broken patch.
+    if (typeof fetch === 'function') {
+      Promise.all([
+      fetch('./worker-D0yVVX5G.js?v=21', { cache: 'no-store' })
+        .then((r) => r.text())
+        .then((t) => (t.indexOf('tt-imp-worker-log') !== -1 ? 'fresh' : 'STALE'))
+        .catch(() => 'unknown'),
+      fetch('./assets/index-CuWqRJnk.js?v=21', { cache: 'no-store' })
+        .then((r) => r.text())
+        .then((t) => (t.indexOf('authorizationStateReady`&&t.signOut') !== -1 ? 'fresh' : 'STALE'))
+        .catch(() => 'unknown'),
+    ]).then(([w, m]) => {
+      logImpEvent('bundle-check: worker=' + w + ' main=' + m);
+    });
     }
     setTimeout(maybeShowDebugChip, 9000);
     if (!isLoggedIn()) {

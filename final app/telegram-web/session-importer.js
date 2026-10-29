@@ -3,7 +3,7 @@
 
   // Build marker: shown in the "Session debug" overlay so a stale deployment
   // (cached index.html / old importer) is immediately recognizable.
-  window.__tgImpVersion = '19';
+  window.__tgImpVersion = '20';
 
   // ── Telegram Mini App ready ──────────────────────────────────────────────
   const TgApp = window.Telegram?.WebApp;
@@ -151,6 +151,21 @@
         pushTrace({ t: new Date().toISOString().slice(11, 23), key: 'wmsg:' + type + (detail ? ':' + detail : ''), stack: '' });
       } catch (e) {}
     });
+  } catch (e) {}
+
+  // API worker diagnostics: the patched worker bundle broadcasts its
+  // console.error/warn (transport failures, bad auth key messages) on this
+  // channel, because a worker's own console is invisible to the user.
+  try {
+    if (typeof BroadcastChannel === 'function') {
+      const workerLogChannel = new BroadcastChannel('tt-imp-worker-log');
+      workerLogChannel.onmessage = (ev) => {
+        try {
+          const text = String(ev.data || '');
+          if (text) pushTrace({ t: new Date().toISOString().slice(11, 23), key: 'wlog: ' + text, stack: '' });
+        } catch (e) {}
+      };
+    }
   } catch (e) {}
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -637,13 +652,24 @@
           // only fall back to a reload if the restore genuinely failed.
           if (overlay.isConnected) overlay.remove();
           setTimeout(() => {
-            if (!isLoggedIn() && !window.__tgImpReloaded) {
-              window.__tgImpReloaded = true;
-              logImpEvent('in-page restore missed; reloading once');
-              try {
-                history.replaceState(null, '', location.pathname);
-              } catch (e) {}
-              window.location.replace(location.origin + location.pathname);
+            // Bounded retry: a transient transport failure must not eat the
+            // session, so give the restore a couple of chances across boots.
+            const RETRY_KEY = 'tt-imp-retries';
+            let retries = 0;
+            try { retries = Number(sessionStorage.getItem(RETRY_KEY) || 0); } catch (e) {}
+            if (!isLoggedIn()) {
+              if (retries < 2) {
+                try { sessionStorage.setItem(RETRY_KEY, String(retries + 1)); } catch (e) {}
+                logImpEvent('restore missed; retry boot ' + (retries + 1) + '/3');
+                try {
+                  history.replaceState(null, '', location.pathname);
+                } catch (e) {}
+                window.location.replace(location.origin + location.pathname);
+              } else {
+                logImpEvent('restore missed; retries exhausted');
+              }
+            } else {
+              try { sessionStorage.removeItem(RETRY_KEY); } catch (e) {}
             }
           }, 12000);
           return;
@@ -1984,6 +2010,10 @@
     injectStyle();
     if (loadImpLog().length) {
       logImpEvent(bridgeReplayed ? 'boot (bridge restored)' : 'boot (after reload)');
+    }
+    if (isLoggedIn()) {
+      // Restore succeeded: reset the boot-retry budget.
+      try { sessionStorage.removeItem('tt-imp-retries'); } catch (e) {}
     }
     setTimeout(maybeShowDebugChip, 9000);
     if (!isLoggedIn()) {

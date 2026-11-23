@@ -191,11 +191,9 @@
     return undefined;
   }
 
-  function replyTo(body) {
+  function replyToMsgId(body) {
     var id = first(body, ['reply_to_msg_id', 'replyToMsgId', 'reply_to', 'reply']);
-    if (!id) return undefined;
-    var mid = Number(id);
-    return { _: 'inputReplyToMessage', reply_to_msg_id: mid, top_msg_id: mid };
+    return id ? Number(id) : undefined;
   }
 
   function json(result) {
@@ -243,7 +241,7 @@
         return invokeManager('appMessagesManager', 'sendText', [{
           peerId: peerId,
           text: text,
-          replyTo: replyTo(body),
+          replyToMsgId: replyToMsgId(body),
           silent: !!body.silent
         }]);
       }
@@ -257,7 +255,7 @@
           peerId: peerId,
           file: file,
           caption: String(body.caption || ''),
-          replyTo: replyTo(body)
+          replyToMsgId: replyToMsgId(body)
         }]);
       }
 

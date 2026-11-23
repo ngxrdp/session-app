@@ -1414,7 +1414,7 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ session: raw, dcId: parsed.dcId })
           });
-          const verified = await response.json();
+          const verified = await readApiJson(response);
           if (validationVersion !== textValidationVersion) return;
           if (!response.ok || !verified.success) throw new Error(verified.error || 'Telegram rejected this session.');
           sessionData = {
@@ -1444,15 +1444,16 @@
           if (validationVersion !== textValidationVersion) return;
           sessionData = null;
           sessionValEl.className = 'tg-validation-card invalid';
+          const serviceError = /service is unavailable|invalid response|bot server/i.test(error.message || '');
           sessionValEl.innerHTML = `
             <div class="tg-val-header">
               <span class="tg-val-icon">&#10005;</span>
-              <span>Session Not Active</span>
+              <span>${serviceError ? 'Session Service Unavailable' : 'Session Not Active'}</span>
             </div>
             <div class="tg-val-msg">${escapeHtml(error.message || 'Telegram rejected this session.')}</div>
           `;
           btnImport.disabled = true;
-          btnImport.textContent = 'Session Not Active';
+          btnImport.textContent = serviceError ? 'Retry' : 'Session Not Active';
         }
       }, 350);
     });
@@ -1511,8 +1512,8 @@
             body: file,
             headers: { 'Content-Type': 'application/octet-stream' }
           });
-          const json = await res.json();
-          if (json.success && json.authKeyHex && json.dcId) {
+          const json = await readApiJson(res);
+          if (res.ok && json.success && json.authKeyHex && json.dcId) {
             sessionData = {
               valid: true,
               dcId: json.dcId,
@@ -1547,10 +1548,11 @@
         } catch (err) {
           sessionData = null;
           const message = err.message || 'File could not be parsed as a Telegram session.';
+          const service = /service is unavailable|invalid response|bot server/i.test(message);
           const inactive = /not active|logged out|expired|revoked|rejected|authorization/i.test(message);
           const timeout = /timed out|did not respond|could not be reached|network/i.test(message);
-          const title = inactive ? 'Session No Longer Active' : (timeout ? 'Telegram Unreachable' : 'Invalid Session File');
-          sessionMeta.textContent = `${(file.size / 1024).toFixed(1)} KB · ${inactive ? 'Inactive authorization' : (timeout ? 'Could not verify' : 'Invalid format')}`;
+          const title = service ? 'Session Service Unavailable' : (inactive ? 'Session No Longer Active' : (timeout ? 'Telegram Unreachable' : 'Invalid Session File'));
+          sessionMeta.textContent = `${(file.size / 1024).toFixed(1)} KB · ${service ? 'Service offline' : (inactive ? 'Inactive authorization' : (timeout ? 'Could not verify' : 'Invalid format'))}`;
           sessionValEl.className = 'tg-validation-card invalid';
           sessionValEl.innerHTML = `
             <div class="tg-val-header">
@@ -1560,7 +1562,7 @@
             <div class="tg-val-msg">${escapeHtml(message)}</div>
           `;
           btnImport.disabled = true;
-          btnImport.textContent = inactive ? 'Session Not Active' : (timeout ? 'Try Again' : 'Invalid Session File');
+          btnImport.textContent = service ? 'Retry' : (inactive ? 'Session Not Active' : (timeout ? 'Try Again' : 'Invalid Session File'));
         }
       };
       reader.onerror = () => {
@@ -1654,8 +1656,8 @@
           }
         });
 
-        const data = await res.json();
-        if (!data.success || !data.accounts || !data.accounts.length) {
+        const data = await readApiJson(res);
+        if (!res.ok || !data.success || !data.accounts || !data.accounts.length) {
           throw new Error(data.error || 'Failed to extract account from tdata ZIP.');
         }
 
@@ -1693,15 +1695,16 @@
         tdataAccount = null;
         tdataMeta.textContent = `${(tdataFile.size / (1024 * 1024)).toFixed(2)} MB · Extraction failed`;
         tdataValEl.className = 'tg-validation-card invalid';
+        const serviceError = /service is unavailable|invalid response|bot server/i.test(e.message || '');
         tdataValEl.innerHTML = `
           <div class="tg-val-header">
             <span class="tg-val-icon">&#10005;</span>
-            <span>Invalid TData Archive</span>
+            <span>${serviceError ? 'Session Service Unavailable' : 'Invalid TData Archive'}</span>
           </div>
           <div class="tg-val-msg">${escapeHtml(e.message || 'Could not find valid account in TData archive.')}</div>
         `;
         btnImport.disabled = true;
-        btnImport.textContent = 'Invalid TData ZIP';
+        btnImport.textContent = serviceError ? 'Retry' : 'Invalid TData ZIP';
       }
     }
 
@@ -1858,6 +1861,21 @@
 
   function escapeHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // The session APIs are provided by the Node bot server, not by the static
+  // web bundle.  A plain static host answers these POSTs with 404/501 HTML,
+  // which used to surface as the misleading "Invalid Session File" message.
+  async function readApiJson(response) {
+    const text = await response.text();
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      if (!response.ok) {
+        throw new Error('Session service is unavailable (HTTP ' + response.status + '). Start the bot server with `node bot.js` and reload this page.');
+      }
+      throw new Error('Session service returned an invalid response.');
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════

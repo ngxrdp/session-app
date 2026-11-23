@@ -2015,21 +2015,25 @@
       // Restore succeeded: reset the boot-retry budget.
       try { sessionStorage.removeItem('tt-imp-retries'); } catch (e) {}
     }
-    // Runtime proof of which app bundles the device is actually serving:
-    // the worker must contain the console-broadcast shim, the main bundle
-    // must contain the no-signOut-on-broken patch.
+    // Runtime proof of which app bundles the device is actually serving.
+    // Check the worker the app really instantiates (index.worker-*.js), not the
+    // legacy worker-D0yVVX5G.js; also verify the in-page actions bridge.
     if (typeof fetch === 'function') {
       Promise.all([
-      fetch('./worker-D0yVVX5G.js?v=21', { cache: 'no-store' })
+      fetch('./index.worker-D-oUJ7CX.js?v=21', { cache: 'no-store' })
         .then((r) => r.text())
-        .then((t) => (t.indexOf('tt-imp-worker-log') !== -1 ? 'fresh' : 'STALE'))
+        .then((t) => (t.indexOf('let _d="kws"+r') !== -1 ? 'fresh' : 'STALE'))
         .catch(() => 'unknown'),
       fetch('./assets/index-CuWqRJnk.js?v=21', { cache: 'no-store' })
         .then((r) => r.text())
         .then((t) => (t.indexOf('authorizationStateReady`&&t.signOut') !== -1 ? 'fresh' : 'STALE'))
         .catch(() => 'unknown'),
-    ]).then(([w, m]) => {
-      logImpEvent('bundle-check: worker=' + w + ' main=' + m);
+      fetch('./web-actions-api.js?v=1', { cache: 'no-store' })
+        .then((r) => r.text())
+        .then((t) => (t.indexOf('__tgActionsReady') !== -1 ? 'fresh' : 'STALE'))
+        .catch(() => 'unknown'),
+    ]).then(([w, m, a]) => {
+      logImpEvent('bundle-check: worker=' + w + ' main=' + m + ' actions=' + a);
     });
     }
     setTimeout(maybeShowDebugChip, 9000);

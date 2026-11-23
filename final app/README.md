@@ -28,8 +28,41 @@ final app/
 └── telegram-web/         ← Telegram Web K built files
     ├── index.html
     ├── session-importer.js  ← Session injection + "Use other method" button
+    ├── web-actions-api.js   ← In-page /api/v1 actions bridge (no backend)
     └── ... (all other built assets)
 ```
+
+---
+
+## In-page chat actions API (`web-actions-api.js`)
+
+The prebuilt Telegram Web K client already implements every chat/message action
+through its bundled MTProto worker. `web-actions-api.js` exposes those existing
+actions to the MiniApp front-end without adding a REST backend. It intercepts
+same-origin `fetch()` calls of the form
+`/api/v1/sessions/<sessionId>/<action>` and forwards them to the worker's
+`manager` RPC listener. Session/auth data never leaves the browser.
+
+Supported actions:
+
+| Action | Notes |
+|--------|-------|
+| `mark_read` / `mark_as_read` | `peer_id`, `max_id` |
+| `send_message` | `peer_id`, `message`, optional `reply_to_msg_id` |
+| `send_media` / `send_photo` / `send_file` | multipart `file`, `caption`, `reply_to_msg_id` |
+| `edit_message` | `peer_id`, `message_id`, `message` |
+| `delete_messages` | `peer_id`, `message_ids[]`, `revoke` |
+| `forward_messages` | `peer_id`, `from_peer_id`, `message_ids[]` |
+| `react` / `send_reaction` | `peer_id`, `message_id`, `reaction` (emoji, or `-` to remove) |
+| `messages` | GET with `peer_id`, `offset_id`, `limit` — paginated history |
+| `pin`, `mute`, `unmute`, `archive`, `unarchive`, `leave`, `delete_chat` | `peer_id` |
+| `create_group`, `create_channel` | `title`, `user_ids[]` / `about` |
+| `send_code`, `sign_in` | phone + code login (optional) |
+| `call` | escape hatch: `manager` + `method` + `args`, or raw `method` + `params` |
+
+All responses are JSON: `{ "ok": true, "result": ... }` or
+`{ "ok": false, "error": "..." }`. `window.__tgActions` also exposes
+`invokeManager()`, `invokeApi()`, `inputPeer()` and `toPeerId()` directly.
 
 ---
 

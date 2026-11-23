@@ -34,7 +34,7 @@ fi
 
 echo "Starting server on port $PORT (log: $LOG)"
 cd "$BOT"
-PORT="$PORT" APP_URL="$APP_URL_VALUE" node bot.js >> "$LOG" 2>&1 &
+PORT="$PORT" APP_URL="$APP_URL_VALUE" nohup node bot.js >> "$LOG" 2>&1 &
 echo $! > "$BASE/server.pid"
 sleep 2
 curl -fsS "http://127.0.0.1:$PORT/" >/dev/null
